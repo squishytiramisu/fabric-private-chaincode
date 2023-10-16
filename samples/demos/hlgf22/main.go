@@ -16,7 +16,9 @@ import (
 	"os"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
-	// TODO add imports
+	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	fpc "github.com/hyperledger/fabric-private-chaincode/ecc_go/chaincode"
+	"github.com/hyperledger/fabric-samples/asset-transfer-basic/chaincode-go/chaincode"
 )
 
 func main() {
@@ -26,6 +28,9 @@ func main() {
 
 	// create chaincode
 	// TODO add chaincode
+
+	assetChaincode, _ := contractapi.NewChaincode(&chaincode.SmartContract{})
+	chaincode := fpc.NewPrivateChaincode(assetChaincode)
 
 	// start chaincode as a service
 	server := &shim.ChaincodeServer{

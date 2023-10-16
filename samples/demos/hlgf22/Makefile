@@ -5,4 +5,4 @@
 TOP = ../../..
 include $(TOP)/ecc_go/build.mk
 
-CC_NAME ?= TODO
+CC_NAME ?= fpc-basic-asset-transfer

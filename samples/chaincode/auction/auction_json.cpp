@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "auction_json.h"
+#include "dto_json.h"
 #include "parson.h"
 
 int unmarshal_auction(auction_t* auction, const char* json_bytes, uint32_t json_len)
