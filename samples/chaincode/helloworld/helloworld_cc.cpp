@@ -3,106 +3,149 @@
 #include <string>
 #include "dto_json.h"
 #include "validate.h"
+#include "complex_validations.h"
 
 
-#include <cstdio>
-#include <iostream>
-#include <string>
+#include "get_functions.h"
+#include "constants.h"
 
-#define OK "OK"
-#define NOT_FOUND "Asset not found"
+const std::string VALID_TAJ = "123456789";
 
+const std::string PERSON_PREFIX = ".P.";
 
-#define MAX_VALUE_SIZE 1024
+const std::string HEALTH_EXAMINATION_PREFIX = ".H.";
 
-#define EXAMPLE_MAX_PARTICIPANTS 3
-#define EXAMPLE_MIN_PARTICIPANTS 2
+const std::string LIFE_INSURANCE_PREFIX = ".L.";
 
-//  Add asset_name, value to ledger
-std::string storeAsset(std::string asset_name, int value, shim_ctx_ptr_t ctx)
-{
-    LOG_DEBUG("HelloworldCC: +++ storeAsset +++");
-
-    put_state(asset_name.c_str(), (uint8_t*)&value, sizeof(int), ctx);
-
-    return OK;
-}
+const std::string WORK_PERMIT_PREFIX = ".W.";
 
 
+std::string personBorn(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string name, std::string birth_date){
 
-std::string retrieveAsset(std::string asset_name, shim_ctx_ptr_t ctx)
-{
-    std::string result;
-    LOG_DEBUG("HelloworldCC: +++ retrieveAsset +++");
-
-    uint32_t asset_bytes_len = 0;
-    uint8_t asset_bytes[MAX_VALUE_SIZE];
-    get_state(asset_name.c_str(), asset_bytes, sizeof(asset_bytes), &asset_bytes_len, ctx);
-
-    //  check if asset_name exists
-    if (asset_bytes_len > 0)
-    {
-        result = asset_name +   ":" +  std::to_string((int)(*asset_bytes));
-     } else {
-        //  asset does not exist
-        result = NOT_FOUND;
-    }
-    return result;
-}
-
-std::string own_obj_create(std::string own_obj_name,std::string caller, int value, shim_ctx_ptr_t ctx)
-{
-    uint32_t own_obj_bytes_len = 0;
-    uint8_t own_obj_bytes[MAX_VALUE_SIZE];
-    get_state(own_obj_name.c_str(), own_obj_bytes, sizeof(own_obj_bytes), &own_obj_bytes_len, ctx);
-
-    if (own_obj_bytes_len > 0)
-    {
-        // own_obj already exists
-        LOG_DEBUG("own_objCC: own_obj already exists");
-        return "own_obj_ALREADY_EXISTING";
+    //Validate request
+    if(!validPersonBorn(id, taj, name, birth_date, ctx)){
+        return "ERROR: Invalid request";
     }
 
-    if(!assertValidTaj(caller)){
-        return "INVALID TAJ";
-    }
-
-    // create new own_obj
-    my_struct_t new_own_obj;
-    new_own_obj.name = (char*)caller.c_str();
-    new_own_obj.value = value;
+    // create new person
+    person_t new_person;
+    new_person.id = (char*)id.c_str();
+    new_person.taj = (char*)taj.c_str();
+    new_person.name = (char*)name.c_str();
+    new_person.birth_date = (char*)birth_date.c_str();
 
     // convert to json string and store
-    std::string json = marshal_my_struct(&new_own_obj);
-    put_state(own_obj_name.c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
+    std::string json = marshal_person(&new_person);
+    put_state((PERSON_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
 
     return OK;
 }
 
-my_struct_t get_struct_state(
-    std::string key,  shim_ctx_ptr_t ctx)
-{
-    // check if struct already exists
-    uint32_t struct_bytes_len = 0;
-    uint8_t struct_bytes[MAX_VALUE_SIZE];
-    get_state(key.c_str(), struct_bytes, sizeof(struct_bytes), &struct_bytes_len, ctx);
+std::string personDie(shim_ctx_ptr_t ctx, std::string id){
 
-    if (struct_bytes_len == 0)
-    {
-        LOG_DEBUG("structCC: struct does not exist");
-        my_struct_t the_struct;
-        return the_struct;
+    // check if person already exists
+    if(!validPersonDie(id, ctx)){
+        return "ERROR: Person does not exist or already dead";
     }
 
-    // get struct struct from json
-    my_struct_t the_struct;
-    unmarshal_my_struct(&the_struct, (const char*)struct_bytes, struct_bytes_len);
+    person_t the_person = getPerson((PERSON_PREFIX+id).c_str(), ctx);
+    the_person.death_date = "TODO";
+    std::string json = marshal_person(&the_person);
+    put_state((PERSON_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
+    
+    return OK;
+}
 
+std::string issueHealthExamination(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string examination_date, int systole, int diastole){
 
-    return the_struct;
+    // check if person already exists
+    if(!validIssueHealthExamination(id, taj, examination_date, systole, diastole, ctx)){
+        return "ERROR: Person does not exist or already dead";
+    }
+        
+    health_examination_t new_examination;
+    new_examination.date = (char*)examination_date.c_str();
+    new_examination.systole = systole;
+    new_examination.diastole = diastole;
+    new_examination.taj = (char*)taj.c_str();
+    new_examination.id = (char*)id.c_str();
+        
+    std::string json = marshal_health_examination(&new_examination);
+    
+    // TODO increment number of examinations
+    put_state((HEALTH_EXAMINATION_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
+    
+    return OK;
 }
 
 
+std::string issueLifeInsurance(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string from, std::string to, int cost, int payment, bool should_pay){
+
+    // check if person already exists
+    if(!idExists(id, ctx) || !isAlive(id, ctx) || !isHealthy(id, ctx)){
+        return "ERROR: Person does not exist or is not eligible for life insurance";
+    }
+        
+    life_insurance_t new_life_insurance;
+    new_life_insurance.id = (char*)id.c_str();
+    new_life_insurance.taj = (char*)taj.c_str();
+    new_life_insurance.from = (char*)from.c_str();
+    new_life_insurance.to = (char*)to.c_str();
+    new_life_insurance.cost = cost;
+    new_life_insurance.payment = payment;
+    new_life_insurance.should_pay = should_pay;
+        
+    std::string json = marshal_life_insurance(&new_life_insurance);
+    put_state((LIFE_INSURANCE_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
+    return OK;
+}
+
+std::string issueWorkPermit(shim_ctx_ptr_t ctx, std::string id, std::string name, std::string from, std::string issuer){
+
+    // check if person already exists
+    if(!validIssueWorkPermit(id, name, from, issuer, ctx)){
+        return "ERROR: Person does not exist or is not eligible for work permit";
+    }
+        
+    work_permit_t new_work_permit;
+    new_work_permit.id = (char*)id.c_str();
+    new_work_permit.name = (char*)name.c_str();
+    new_work_permit.from = (char*)from.c_str();
+    new_work_permit.issuer = (char*)issuer.c_str();
+        
+    std::string json = marshal_work_permit(&new_work_permit);
+    put_state((WORK_PERMIT_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
+    return OK;
+
+}
+
+
+std::string revokeWorkPermit(shim_ctx_ptr_t ctx, std::string id){
+    
+        // check if person already exists
+        if(!validRevokeWorkPermit(id, ctx)){
+            return "ERROR: Person does not exist or is not eligible for work permit";
+        }
+
+        work_permit_t the_work_permit = getWorkPermit((WORK_PERMIT_PREFIX+id).c_str(), ctx);
+        the_work_permit.from = "";
+        std::string json = marshal_work_permit(&the_work_permit);
+        put_state((WORK_PERMIT_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
+
+        return OK;
+}
+
+std::string canWork(shim_ctx_ptr_t ctx, std::string id){
+    if(!validCanWork(id, ctx)){
+        return "ERROR: Person does not exist";
+    }
+
+    if(hasWorkPermit(id, ctx)){
+        return "NO WORK PERMIT";
+    }
+
+    return "HAS WORK PERMIT";
+}
 
 // implements chaincode logic for invoke
 int invoke(
@@ -127,36 +170,83 @@ int invoke(
     LOG_INFO("AuctionCC: real bidder '(msp_id: %s, dn: %s)'",
         real_bidder_name_msp_id, real_bidder_name_dn);
 
+    /////////////// FUNCTION SWITCH ///////////////////////
+    
+    if("PersonBorn"){
+        if(params.size() != 4){
+            LOG_DEBUG("personCC: PersonBorn: Wrong number of arguments");
+            return -1;
+        }
+        std::string id = params[0];
+        std::string taj = params[1];
+        std::string name = params[2];
+        std::string birth_date = params[3];
+        result = personBorn(ctx, id, taj, name, birth_date);
+    }else if("PersonDie"){
+        if(params.size() != 1){
+            LOG_DEBUG("personCC: PersonDie: Wrong number of arguments");
+            return -1;
+        }
+        std::string id = params[0];
+        result = personDie(ctx, id);
+    }else if("IssueHealthExamination"){
+        if(params.size() != 5){
+            LOG_DEBUG("personCC: IssueHealthExamination: Wrong number of arguments");
+            return -1;
+        }
+        std::string id = params[0];
+        std::string taj = params[1];
+        std::string examination_date = params[2];
+        int systole = std::stoi(params[3]);
+        int diastole = std::stoi(params[4]);
+        result = issueHealthExamination(ctx, id, taj, examination_date, systole, diastole);
 
-    if (function_name == "storeAsset")
+    }else if("IssueLifeInsurance"){
+        if(params.size() != 6){
+            LOG_DEBUG("personCC: IssueLifeInsurance: Wrong number of arguments");
+            return -1;
+        }
+        std::string id = params[0];
+        std::string taj = params[1];
+        std::string from = params[2];
+        std::string to = params[3];
+        int cost = std::stoi(params[4]);
+        int payment = std::stoi(params[5]);
+        bool should_pay = false;
+        result = issueLifeInsurance(ctx, id, taj, from, to, cost, payment, false);
+    }else if("IssueWorkPermit"){
+        if(params.size() != 4){
+            LOG_DEBUG("personCC: IssueWorkPermit: Wrong number of arguments");
+            return -1;
+        }
+        std::string id = params[0];
+        std::string name = params[1];
+        std::string from = params[2];
+        std::string issuer = params[3];
+        result = issueWorkPermit(ctx, id, name, from, issuer);
+    }else if("RevokeWorkPermit"){
+        if(params.size() != 1){
+            LOG_DEBUG("personCC: RevokeWorkPermit: Wrong number of arguments");
+            return -1;
+        }
+        std::string id = params[0];
+        result = revokeWorkPermit(ctx, id);
+    }else if("hasWorkPermit")
     {
-        int value = std::stoi (params[1]);
-        result = storeAsset(asset_name, value, ctx);
+        if(params.size() != 1){
+            LOG_DEBUG("personCC: hasWorkPermit: Wrong number of arguments");
+            return -1;
+        }
+        std::string id = params[0];
+        result = canWork(ctx, id);
     }
-    else if (function_name == "retrieveAsset")
     {
-        result = retrieveAsset(asset_name, ctx);
-    }
-    else if (function_name == "storeMyStruct")
-    {
-        int value = std::stoi (params[1]);
-        result = own_obj_create(asset_name, params[0],value, ctx);
-    }
-    else if (function_name == "getMyStruct")
-    {
-        my_struct_t res = get_struct_state(asset_name, ctx);
-        LOG_INFO("OBJ OWNER: %s", res.name);
-        LOG_INFO("OBJ VALUE: %d", res.value);
-
-        result = res.name;          
-
-    }
-    else
-    {
-        // unknown function
         LOG_DEBUG("HelloworldCC: RECEIVED UNKNOWN transaction '%s'", function_name);
         return -1;
     }
+    /////////////// RETURNING ///////////////////////
+
+
 
     // check that result fits into response
     int neededSize = result.size();
@@ -174,29 +264,4 @@ int invoke(
     LOG_DEBUG("HelloworldCC: Response: %s", result.c_str());
     LOG_DEBUG("HelloworldCC: +++ Executing done +++");
     return 0;
-}
-
-
-
-
-
-
-std::string invokePython(){
-    const char* pythonCommand = "./python/elgamal";
-
-    FILE* pipe = popen("echo Hello", "r");
-    if (pipe == nullptr) {
-        return "1";
-    }
-
-    char buffer[128];
-    std::string result = "";
-
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-        result += buffer;
-    }
-
-    int status = pclose(pipe);
-
-    return "SUCCESS";
 }

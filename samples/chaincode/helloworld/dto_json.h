@@ -4,25 +4,59 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+
+
+
+
 #pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <string>
 
-typedef struct auction
-{
-    std::string name;
-    bool is_open;
-} auction_t;
+///////////// REAL DTOs
 
-typedef struct my_struct
-{
+typedef struct person{
+    std::string id;
+    std::string taj;
     std::string name;
-    int value;
-} my_struct_t;
+    std::string birth_date;
+    std::string death_date;
+} person_t;
 
-int unmarshal_auction(auction_t* auction, const char* json_bytes, uint32_t json_len);
-int unmarshal_my_struct(my_struct_t* my_structs, const char* json_bytes, uint32_t json_len);
-std::string marshal_auction(auction_t* auction);
-std::string marshal_my_struct(my_struct_t* my_struct);
+typedef struct health_examination{
+    std::string id;
+    std::string taj;
+    int systole;
+    int diastole;
+    std::string date;
+} health_examination_t;
+
+typedef struct life_insurance{
+    std::string id;
+    std::string taj;
+    std::string from;
+    std::string to;
+    int cost;
+    int payment;
+    bool should_pay;
+} life_insurance_t;
+
+
+typedef struct work_permit{
+    std::string id;
+    std::string name;
+    std::string from;
+    std::string issuer;
+} work_permit_t;
+
+std::string marshal_person(person_t* person);
+std::string marshal_health_examination(health_examination_t* health_examination);
+std::string marshal_life_insurance(life_insurance_t* life_insurance);
+std::string marshal_work_permit(work_permit_t* work_permit);
+
+int unmarshal_person(person_t* person, const char* json_bytes, uint32_t json_len);
+int unmarshal_health_examination(health_examination_t* health_examination, const char* json_bytes, uint32_t json_len);
+int unmarshal_life_insurance(life_insurance_t* life_insurance, const char* json_bytes, uint32_t json_len);
+int unmarshal_work_permit(work_permit_t* work_permit, const char* json_bytes, uint32_t json_len);
+

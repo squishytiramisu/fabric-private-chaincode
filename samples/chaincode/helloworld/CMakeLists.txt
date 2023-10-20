@@ -4,6 +4,8 @@ set(SOURCE_FILES
     helloworld_cc.cpp
     dto_json.cpp
     validate.cpp
+    complex_validations.cpp
+    get_functions.cpp
     )
 
 

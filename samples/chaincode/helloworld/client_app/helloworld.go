@@ -48,5 +48,13 @@ func main() {
 	}
 	logger.Infof("--> Result: %s", string(result_inv))
 
+
+	//REAL
+	logger.Infof("--> Invoke FPC Chaincode: person born")
+	result_r, err_r := contract.SubmitTransaction("getPerson", "P123123123")
+	if err_r != nil {
+		logger.Fatalf("Failed to Submit transaction: %v", err_r)
+	}
+	logger.Infof("--> Result: %s", string(result_r))
 	
 }
