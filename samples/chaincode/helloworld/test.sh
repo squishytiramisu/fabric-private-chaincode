@@ -57,22 +57,22 @@ run_test() {
     # Try valid person (Bob) dies, should succeed
     # Try create health record (healthy) for valid person (Bob) should fail, dead
     
+    say "- interact with the FPC chaincode using our client app"
+    export CC_ID
+    export CHAN_ID
+    go run client_app/helloworld.go
 
-
+    return
     para
     # create invalid person should fail
     say "- invoke personBad transaction to create invalid person"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["PersonBorn","123123123","123123123","Johnatan Merquic","12"]}' --waitForEvent
-
-
-
 
     para
     # create valid person (Alice) should succeed
     say "- invoke personBorn transaction to create valid person (Alice)"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["PersonBorn","123123000","123123000","Alice Monoro","20001112"]}' --waitForEvent
 
-    return
 
     para
     # create valid person (Bob) should succeed
@@ -104,15 +104,22 @@ run_test() {
     say "- invoke healthRecord transaction to create health record for invalid person should fail"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueHealthExamination","123123123", "123123123", "20201010", "120", "180"]}' --waitForEvent
 
+
+
+
+
     para
     # create health record for valid person (Alice) should succeed
     say "- invoke healthRecord transaction to create health record for valid person (Alice) should succeed"
-    ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueHealthExamination","123123000", "123123000", "20201010", "120", "180"]}' --waitForEvent
+    ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueHealthExamination","123123000", "123123000", "20201010", "120", "80"]}' --waitForEvent
 
     para
     # create work permit for valid person (Alice) should fail again, no life insurance
     say "- invoke workPermit transaction to create work permit for valid person (Alice) should fail again, no life insurance"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueWorkPermit","123123000", "Alice Monoro", "20201010", "WorkPermitAgency"]}' --waitForEvent
+
+
+
 
     para
     # create life insurance for valid person (Alice) should succeed
@@ -129,6 +136,9 @@ run_test() {
     say "- invoke healthRecord transaction to create health record (unhealty) for valid person (Bob) should succeed"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueHealthExamination","123123111", "123123111", "20201010", "210", "100"]}' --waitForEvent
 
+
+
+    
     para
     # create work permit for valid person (Bob) should fail, no life insurance
     say "- invoke workPermit transaction to create work permit for valid person (Bob) should fail, no life insurance"
@@ -136,7 +146,7 @@ run_test() {
 
     para
     # create life insurance for valid person (Bob) should fail, not healthy
-    say "- invoke lifeInsurance transaction to create life insurance for valid person (Bob) should fail, not healthy" 
+    say "- invoke workPermit transaction to create work permit for valid person (Bob) should fail, no life insurance"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueLifeInsurance","123123111", "123123111", "20201010", "20301010","100", "200"]}' --waitForEvent
 
     para
@@ -157,10 +167,7 @@ run_test() {
 
 
 
-    say "- interact with the FPC chaincode using our client app"
-    export CC_ID
-    export CHAN_ID
-    #go run client_app/helloworld.go
+
 
 }
 

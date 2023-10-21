@@ -16,7 +16,7 @@
 #   so make sure externally than 'channel join' is called only for a single channel.
 
 #RUN=echo   # uncomment (or define when calling script) to dry-run peer call
-#DEBUG=true # uncomment (or define when calling script) to show debug output
+DEBUG=true # uncomment (or define when calling script) to show debug output
 
 SCRIPTDIR="$(dirname $(readlink --canonicalize ${BASH_SOURCE}))"
 FPC_PATH="${SCRIPTDIR}/../../"
@@ -645,7 +645,7 @@ handle_chaincode_call() {
 
     # - receive decrypted response from assist
     read <&4 decrypted_response
-    [ -z ${decrypted_response} ] && die "peer assist failed to produce decrypted response"
+    [ -z "${decrypted_response}" ] && die "peer assist failed to produce decrypted response"
     [ -z ${DEBUG+x} ] || say "received decrypted response '${decrypted_response}' from peer assist"
 
     # - get assist return code

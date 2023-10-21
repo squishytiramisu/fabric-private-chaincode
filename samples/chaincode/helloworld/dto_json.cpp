@@ -119,3 +119,101 @@ int unmarshal_work_permit(work_permit_t* work_permit, const char* json_bytes, ui
     json_value_free(root);
     return 1;
 }
+
+// data map
+
+std::string marshal_data_map(const data_map_t& data_map) {
+    JSON_Value* root_value = json_value_init_object();
+    JSON_Object* root_object = json_value_get_object(root_value);
+
+    // Marshal persons map
+    JSON_Value* persons_value = json_value_init_object();
+    JSON_Object* persons_object = json_value_get_object(persons_value);
+
+    for (const auto& entry : data_map.persons) {
+        JSON_Value* person_value = json_value_init_object();
+        JSON_Object* person_object = json_value_get_object(person_value);
+
+        json_object_set_string(person_object, "id", entry.second.id.c_str());
+        json_object_set_string(person_object, "taj", entry.second.taj.c_str());
+        json_object_set_string(person_object, "name", entry.second.name.c_str());
+        json_object_set_string(person_object, "birth_date", entry.second.birth_date.c_str());
+        json_object_set_string(person_object, "death_date", entry.second.death_date.c_str());
+
+        json_object_set_value(persons_object, entry.first.c_str(), person_value);
+    }
+
+    json_object_set_value(root_object, "persons", persons_value);
+
+    // Marshal health_examinations map
+    JSON_Value* health_examinations_value = json_value_init_object();
+    JSON_Object* health_examinations_object = json_value_get_object(health_examinations_value);
+
+    for (const auto& entry : data_map.health_examinations) {
+        JSON_Value* health_exam_value = json_value_init_object();
+        JSON_Object* health_exam_object = json_value_get_object(health_exam_value);
+
+        json_object_set_string(health_exam_object, "id", entry.second.id.c_str());
+        json_object_set_string(health_exam_object, "taj", entry.second.taj.c_str());
+        json_object_set_number(health_exam_object, "systole", entry.second.systole);
+        json_object_set_number(health_exam_object, "diastole", entry.second.diastole);
+        json_object_set_string(health_exam_object, "date", entry.second.date.c_str());
+
+        json_object_set_value(health_examinations_object, entry.first.c_str(), health_exam_value);
+    }
+
+    json_object_set_value(root_object, "health_examinations", health_examinations_value);
+
+    char* json_str = json_serialize_to_string_pretty(root_value);
+    std::string result(json_str);
+
+    json_value_free(root_value);
+    return result;
+}
+
+// Function to unmarshal a JSON string into a data_map_t object
+data_map_t unmarshal_data_map(const std::string& json_str) {
+    data_map_t result;
+
+    JSON_Value* root_value = json_parse_string(json_str.c_str());
+    JSON_Object* root_object = json_value_get_object(root_value);
+
+    // Unmarshal persons map
+    JSON_Object* persons_object = json_object_get_object(root_object, "persons");
+    size_t count = json_object_get_count(persons_object);
+
+    for (size_t i = 0; i < count; ++i) {
+        const char* key = json_object_get_name(persons_object, i);
+        JSON_Object* person_object = json_object_get_object(persons_object, key);
+        person_t person;
+
+        person.id = json_object_get_string(person_object, "id");
+        person.taj = json_object_get_string(person_object, "taj");
+        person.name = json_object_get_string(person_object, "name");
+        person.birth_date = json_object_get_string(person_object, "birth_date");
+        person.death_date = json_object_get_string(person_object, "death_date");
+
+        result.persons[key] = person;
+    }
+
+    // Unmarshal health_examinations map
+    JSON_Object* health_examinations_object = json_object_get_object(root_object, "health_examinations");
+    count = json_object_get_count(health_examinations_object);
+
+    for (size_t i = 0; i < count; ++i) {
+        const char* key = json_object_get_name(health_examinations_object, i);
+        JSON_Object* health_exam_object = json_object_get_object(health_examinations_object, key);
+        health_examination_t health_exam;
+
+        health_exam.id = json_object_get_string(health_exam_object, "id");
+        health_exam.taj = json_object_get_string(health_exam_object, "taj");
+        health_exam.systole = (int)json_object_get_number(health_exam_object, "systole");
+        health_exam.diastole = (int)json_object_get_number(health_exam_object, "diastole");
+        health_exam.date = json_object_get_string(health_exam_object, "date");
+
+        result.health_examinations[key] = health_exam;
+    }
+
+    json_value_free(root_value);
+    return result;
+}

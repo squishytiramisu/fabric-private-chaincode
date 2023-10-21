@@ -18,43 +18,123 @@ func main() {
 	logger.Infof("Use channel: %v", channelID)
 
 	// get network
-	network, err := utils.SetupNetwork(channelID)
+	network, _ := utils.SetupNetwork(channelID)
 
 	// Get FPC Contract
 	contract := fpc.GetContract(network, ccID)
 
-	// Invoke FPC Chaincode storeAsset
-	logger.Infof("--> Invoke FPC Chaincode: store own JSON with TAJ")
-	result, err := contract.SubmitTransaction("storeMyStruct", "123123123", "100")
-	if err != nil {
-		logger.Fatalf("Failed to Submit transaction: %v", err)
-	}
-	logger.Infof("--> Result: %s", string(result))
 
-	// Evaluate FPC Chaincode retrieveAsset
-	logger.Infof("--> Evaluate FPC Chaincode: stored TAJ check")
-	result, err = contract.EvaluateTransaction("getMyStruct", "123123123")
-	if err != nil {
-		logger.Fatalf("Failed to Evaluate transaction: %v", err)
-	}
-	logger.Infof("--> Result: %s", string(result))
+	transactions := []struct {
+        Name string
+        Args []string
+		Desc string
+    }{
+        {
+            Name: "PersonBorn",
+            Args: []string{"123123123", "123123123", "Johnatan Merquic", "12"},
+			Desc: "- invoke personBad transaction to create invalid person",
+        },
+        {
+            Name: "PersonBorn",
+            Args: []string{"123123000", "123123000", "Alice Monoro", "20001112"},
+			Desc: "- invoke personBorn transaction to create valid person (Alice)",
+        },
+        {
+            Name: "PersonBorn",
+            Args: []string{"123123111", "123123111", "Bob Monoro", "20021112"},
+			Desc: "- invoke personBorn transaction to create valid person (Bob)",
+        },
+		{
+            Name: "IssueWorkPermit",
+            Args: []string{"123123123", "Alice Monoro", "20201010", "WorkPermitAgency"},
+			Desc: "- invoke workPermit transaction to create work permit for invalid person",
+        },
+		{
+            Name: "IssueWorkPermit",
+            Args: []string{"123123000", "Alice Monoro", "20201010", "WorkPermitAgency"},
+			Desc: "- invoke workPermit transaction to create work permit for valid person (Alice) should fail, no life insurance",
+		},
+		{
+            Name: "IssueLifeInsurance",
+            Args: []string{"123123123", "123123123", "20201010", "20301010","100", "200"},
+			Desc: "- invoke lifeInsurance transaction to create life insurance for invalid person should fail",
+		},
+		{
+            Name: "IssueLifeInsurance",
+            Args: []string{"123123000", "123123000", "20201010", "20301010","100", "200"},
+			Desc: "- invoke lifeInsurance transaction to create life insurance for valid person (Alice) should fail, no health record",
+		},
+		{
+            Name: "IssueHealthExamination",
+            Args: []string{"123123123", "123123123", "20201010", "120", "80"},
+			Desc: "- invoke healthRecord transaction to create health record for invalid person should fail",
+		},
+		{
+            Name: "IssueHealthExamination",
+            Args: []string{"123123000", "123123000", "20201010", "120", "80"},
+			Desc: "- invoke healthRecord transaction to create health record for valid person (Alice) should succeed",
+        },
+		{
+            Name: "IssueWorkPermit",
+            Args: []string{"123123000", "Alice Monoro", "20201010", "WorkPermitAgency"},
+			Desc: "- invoke workPermit transaction to create work permit for valid person (Alice) should fail again, no life insurance",
+        },
+		{
+            Name: "IssueLifeInsurance",
+            Args: []string{"123123000", "123123000", "20201010", "20301010","100", "200"},
+			Desc: "- invoke lifeInsurance transaction to create life insurance for valid person (Alice) should succeed",
+        },
+		{
+            Name: "IssueWorkPermit",
+            Args: []string{"123123000", "Alice Monoro", "20201010", "WorkPermitAgency"},
+			Desc: "- invoke workPermit transaction to create work permit for valid person (Alice) should succeed now",
+        },
+		{
+            Name: "IssueHealthExamination",
+            Args: []string{"123123111", "123123111", "20201010", "210", "100"},
+			Desc: "- invoke healthRecord transaction to create health record (unhealty) for valid person (Bob) should succeed",
+        },
+		{
+            Name: "IssueWorkPermit",
+            Args: []string{"123123111", "Bob Monoro", "20201010", "WorkPermitAgency"},
+			Desc: "- invoke workPermit transaction to create work permit for valid person (Bob) should fail, no life insurance",
+        },
+		{
+            Name: "IssueLifeInsurance",
+            Args: []string{"123123111", "123123111", "20201010", "20301010","100", "200"},
+			Desc: "- invoke workPermit transaction to create work permit for valid person (Bob) should fail, no life insurance",
+        },
+		{
+            Name: "PersonDie",
+            Args: []string{"123123123"},
+			Desc: "- invoke personDied transaction to invalid person dies, should fail",
+        },
+		{
+            Name: "PersonDie",
+            Args: []string{"123123111"},
+			Desc: "- invoke personDied transaction to valid person (Bob) dies, should succeed",
+        },
+		{
+            Name: "IssueHealthExamination",
+            Args: []string{"123123111", "123123111", "20201010", "120", "180"},
+			Desc: "- invoke healthRecord transaction to create health record (healthy) for valid person (Bob) should fail, dead",
+        },
+
+    }
+
+    // Iterate through the transactions and invoke them
+    for _, tx := range transactions {
+        result, err1 := contract.SubmitTransaction(tx.Name, tx.Args...)
+		logger.Infof("Invoking %s %s ", tx.Name, tx.Desc)
+        if err1 != nil {
+            // Handle the error
+           logger.Fatalf("Failed to invoke transaction: " + err1.Error())
+        }
+
+        // Process the result
+        logger.Infof("Result of %s: %s\n", tx.Name, string(result))
+    }
 
 
-	// Store WRONG TAJ
-	logger.Infof("--> Invoke FPC Chaincode: fake TAJ storing attempt")
-	result_inv, err_inv := contract.SubmitTransaction("storeMyStruct", "ab123", "100")
-	if err_inv != nil {
-		logger.Fatalf("Failed to Submit transaction: %v", err_inv)
-	}
-	logger.Infof("--> Result: %s", string(result_inv))
-
-
-	//REAL
-	logger.Infof("--> Invoke FPC Chaincode: person born")
-	result_r, err_r := contract.SubmitTransaction("getPerson", "P123123123")
-	if err_r != nil {
-		logger.Fatalf("Failed to Submit transaction: %v", err_r)
-	}
-	logger.Infof("--> Result: %s", string(result_r))
 	
 }

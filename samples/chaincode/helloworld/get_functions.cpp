@@ -27,7 +27,7 @@ health_examination_t getHealthExamination(std::string id, shim_ctx_ptr_t ctx)
 
     uint32_t health_examination_len = 0;
     uint8_t health_examination[MAX_VALUE_SIZE];
-    get_state(id.c_str(), health_examination, sizeof(health_examination_len), &health_examination_len, ctx);
+    get_state("xdd", health_examination, sizeof(health_examination_len), &health_examination_len, ctx);
 
     if (health_examination_len == 0)
     {

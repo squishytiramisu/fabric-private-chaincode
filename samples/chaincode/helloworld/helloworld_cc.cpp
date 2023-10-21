@@ -13,7 +13,7 @@ const std::string VALID_TAJ = "123456789";
 
 const std::string PERSON_PREFIX = ".P.";
 
-const std::string HEALTH_EXAMINATION_PREFIX = ".H.";
+const std::string HEALTH_EXAMINATION_PREFIX = "h";
 
 const std::string LIFE_INSURANCE_PREFIX = ".L.";
 
@@ -35,12 +35,9 @@ std::string personBorn(shim_ctx_ptr_t ctx, std::string id, std::string taj, std:
     new_person.birth_date = (char*)birth_date.c_str();
     new_person.death_date = "";
 
-    return "OK1";
 
     // convert to json string and store
     std::string json = marshal_person(&new_person);
-
-    return "OK2";
 
     put_state((PERSON_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
 
@@ -79,7 +76,7 @@ std::string issueHealthExamination(shim_ctx_ptr_t ctx, std::string id, std::stri
     std::string json = marshal_health_examination(&new_examination);
     
     // TODO increment number of examinations
-    put_state((HEALTH_EXAMINATION_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
+    put_state(("xdd"), (uint8_t*)json.c_str(), json.size(), ctx);
     
     return OK;
 }
@@ -88,20 +85,32 @@ std::string issueHealthExamination(shim_ctx_ptr_t ctx, std::string id, std::stri
 std::string issueLifeInsurance(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string from, std::string to, int cost, int payment, bool should_pay){
 
     // check if person already exists
-    if(!idExists(id, ctx) || !isAlive(id, ctx) || !isHealthy(id, ctx)){
-        return "ERROR: Person does not exist or is not eligible for life insurance";
+    if(!idExists(id, ctx)){
+        return "ERROR: Person does not exist";
+    }
+    if(!isAlive(id, ctx)){
+        return "ERROR: Person is not alive";
+    }
+
+    //NOT WORKING
+    if(!isHealthy(id, ctx)){
+        return "ERROR: Person is not healthy";
     }
         
     life_insurance_t new_life_insurance;
+
     new_life_insurance.id = (char*)id.c_str();
     new_life_insurance.taj = (char*)taj.c_str();
     new_life_insurance.from = (char*)from.c_str();
     new_life_insurance.to = (char*)to.c_str();
+
     new_life_insurance.cost = cost;
     new_life_insurance.payment = payment;
     new_life_insurance.should_pay = should_pay;
-        
+
+
     std::string json = marshal_life_insurance(&new_life_insurance);
+
     put_state((LIFE_INSURANCE_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
     return OK;
 }
@@ -192,7 +201,10 @@ int invoke(
         real_bidder_name_msp_id, real_bidder_name_dn);
 
     /////////////// FUNCTION SWITCH ///////////////////////
+
     
+
+
 
     if(function_name == "PersonBorn"){
         if(params.size() != 4){
@@ -233,6 +245,8 @@ int invoke(
         int systole = std::stoi(params[3]);
         int diastole = std::stoi(params[4]);
         result = issueHealthExamination(ctx, id, taj, examination_date, systole, diastole);
+        prepareResult(result, response, max_response_len, actual_response_len);
+        return 0;
 
     }else if(function_name == "IssueLifeInsurance"){
         if(params.size() != 6){
@@ -248,7 +262,10 @@ int invoke(
         int cost = std::stoi(params[4]);
         int payment = std::stoi(params[5]);
         bool should_pay = false;
+
         result = issueLifeInsurance(ctx, id, taj, from, to, cost, payment, false);
+        prepareResult(result, response, max_response_len, actual_response_len);
+        return 0;
     }else if(function_name == "IssueWorkPermit"){
         if(params.size() != 4){
             LOG_DEBUG("personCC: IssueWorkPermit: Wrong number of arguments");
@@ -261,6 +278,8 @@ int invoke(
         std::string from = params[2];
         std::string issuer = params[3];
         result = issueWorkPermit(ctx, id, name, from, issuer);
+        prepareResult(result, response, max_response_len, actual_response_len);
+        return 0;
     }else if(function_name == "RevokeWorkPermit"){
         if(params.size() != 1){
             LOG_DEBUG("personCC: RevokeWorkPermit: Wrong number of arguments");
@@ -280,8 +299,66 @@ int invoke(
         }
         std::string id = params[0];
         result = canWork(ctx, id);
+        prepareResult(result, response, max_response_len, actual_response_len);
+        return 0;
     }
-    {
+    else if( function_name == "getPerson"){
+        if(params.size() != 1){
+            LOG_DEBUG("personCC: getPerson: Wrong number of arguments");
+            result = "ERROR: Wrong number of arguments";
+            prepareResult(result, response, max_response_len, actual_response_len);
+            return 0;
+        }
+
+        std::string id = params[0];
+        person_t the_person = getPerson((PERSON_PREFIX+id).c_str(), ctx);
+        result = marshal_person(&the_person);
+        prepareResult(result, response, max_response_len, actual_response_len);
+        return 0;
+    }
+    else if( function_name == "getHealthExamination"){
+        if(params.size() != 1){
+            LOG_DEBUG("personCC: getHealthExamination: Wrong number of arguments");
+            result = "ERROR: Wrong number of arguments";
+            prepareResult(result, response, max_response_len, actual_response_len);
+            return 0;
+        }
+
+        std::string id = params[0];
+        health_examination_t the_health_examination = getHealthExamination((HEALTH_EXAMINATION_PREFIX+id).c_str(), ctx);
+        result = marshal_health_examination(&the_health_examination);
+        prepareResult(result, response, max_response_len, actual_response_len);
+        return 0;
+    }
+    else if( function_name == "getLifeInsurance"){
+        if(params.size() != 1){
+            LOG_DEBUG("personCC: getLifeInsurance: Wrong number of arguments");
+            result = "ERROR: Wrong number of arguments";
+            prepareResult(result, response, max_response_len, actual_response_len);
+            return 0;
+
+        }
+        std::string id = params[0];
+        life_insurance_t the_life_insurance = getLifeInsurance((LIFE_INSURANCE_PREFIX+id).c_str(), ctx);
+        result = marshal_life_insurance(&the_life_insurance);
+        prepareResult(result, response, max_response_len, actual_response_len);
+        return 0;
+    }
+    else if( function_name == "getWorkPermit"){
+        if(params.size() != 1){
+            LOG_DEBUG("personCC: getWorkPermit: Wrong number of arguments");
+            result = "ERROR: Wrong number of arguments";
+            prepareResult(result, response, max_response_len, actual_response_len);
+            return 0;
+
+        }
+        std::string id = params[0];
+        work_permit_t the_work_permit = getWorkPermit((WORK_PERMIT_PREFIX+id).c_str(), ctx);
+        result = marshal_work_permit(&the_work_permit);
+        prepareResult(result, response, max_response_len, actual_response_len);
+        return 0;
+    }
+    else{
         LOG_DEBUG("HelloworldCC: RECEIVED UNKNOWN transaction '%s'", function_name);
         return 0;
     }

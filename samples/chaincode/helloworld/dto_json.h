@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string>
+#include <map>
 
 ///////////// REAL DTOs
 
@@ -50,13 +51,24 @@ typedef struct work_permit{
     std::string issuer;
 } work_permit_t;
 
+typedef struct data_map{
+    std::map <std::string, person_t> persons;
+    std::map <std::string, health_examination_t> health_examinations;
+} data_map_t;
+
+
 std::string marshal_person(person_t* person);
 std::string marshal_health_examination(health_examination_t* health_examination);
 std::string marshal_life_insurance(life_insurance_t* life_insurance);
 std::string marshal_work_permit(work_permit_t* work_permit);
+std::string marshal_data_map(data_map_t* data_map);
 
 int unmarshal_person(person_t* person, const char* json_bytes, uint32_t json_len);
 int unmarshal_health_examination(health_examination_t* health_examination, const char* json_bytes, uint32_t json_len);
 int unmarshal_life_insurance(life_insurance_t* life_insurance, const char* json_bytes, uint32_t json_len);
 int unmarshal_work_permit(work_permit_t* work_permit, const char* json_bytes, uint32_t json_len);
+int unmarshal_data_map(data_map_t* data_map, const char* json_bytes, uint32_t json_len);
+
+
+
 

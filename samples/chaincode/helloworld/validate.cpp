@@ -6,6 +6,8 @@
 #include <vector>
 #include "constants.h"
 
+#include "get_functions.h"
+
 template <typename T>
 bool isNotNull(const T* ptr) {
     return ptr != nullptr;
@@ -125,13 +127,16 @@ bool idExists(const std::string& id, shim_ctx_ptr_t ctx){
     uint8_t person_bytes[MAX_VALUE_SIZE];
 
     //Prefix with letter P
-    get_state( (".P."+id).c_str(), person_bytes, sizeof(person_bytes), &person_bytes_len, ctx);
+    const std::string key(".P.");
+    get_state( (key+id).c_str(), person_bytes, sizeof(person_bytes), &person_bytes_len, ctx);
 
     if (person_bytes_len > 0)
     {
-        LOG_DEBUG("personCC: person already exists");
+        LOG_DEBUG("personCC: person exists");
         return true;
     }
+
+    return false;
 }
 
 bool isAlive(const std::string& id, shim_ctx_ptr_t ctx){
@@ -139,7 +144,8 @@ bool isAlive(const std::string& id, shim_ctx_ptr_t ctx){
     uint8_t person_bytes[MAX_VALUE_SIZE];
 
     //Prefix with letter P
-    get_state( (".P."+id).c_str(), person_bytes, sizeof(person_bytes), &person_bytes_len, ctx);
+    const std::string key(".P.");
+    get_state( (key+id).c_str(), person_bytes, sizeof(person_bytes), &person_bytes_len, ctx);
 
     if (person_bytes_len > 0)
     {
@@ -157,14 +163,16 @@ bool isHealthy(const std::string& id, shim_ctx_ptr_t ctx){
     uint32_t health_examination_len = 0;
     uint8_t health_examination[MAX_VALUE_SIZE];
 
-    //Prefix with letter H
-    get_state( (".H."+id).c_str(), health_examination, sizeof(health_examination_len), &health_examination_len, ctx);
+    const std::string key("h");
+    get_state( (key+id).c_str(), health_examination, sizeof(health_examination_len), &health_examination_len, ctx);
+
 
     if (health_examination_len > 0)
     {
         health_examination_t health_examination_obj;
         unmarshal_health_examination(&health_examination_obj, (const char*)health_examination, health_examination_len);
-        if(health_examination_obj.systole < 140 && health_examination_obj.diastole < 90){
+
+        if(health_examination_obj.systole < 180 && health_examination_obj.diastole < 100){
             return true;
         }
     }
@@ -175,8 +183,8 @@ bool hasLifeInsurance(const std::string& id, shim_ctx_ptr_t ctx){
     uint32_t life_insurance_len = 0;
     uint8_t life_insurance[MAX_VALUE_SIZE];
 
-    //Prefix with letter L
-    get_state( (".L."+id).c_str(), life_insurance, sizeof(life_insurance_len), &life_insurance_len, ctx);
+    const std::string key(".L.");
+    get_state( (key+id).c_str(), life_insurance, sizeof(life_insurance_len), &life_insurance_len, ctx);
 
     if (life_insurance_len > 0)
     {
@@ -193,8 +201,8 @@ bool hasWorkPermit(const std::string& id, shim_ctx_ptr_t ctx){
     uint32_t work_permit_len = 0;
     uint8_t work_permit[MAX_VALUE_SIZE];
 
-    //Prefix with letter W
-    get_state( (".W."+id).c_str(), work_permit, sizeof(work_permit_len), &work_permit_len, ctx);
+    const std::string key(".W.");
+    get_state( (key+id).c_str(), work_permit, sizeof(work_permit_len), &work_permit_len, ctx);
 
     if (work_permit_len > 0)
     {
