@@ -36,7 +36,7 @@ bool isValidTaj(const std::string& str){
 }
 
 bool isValidBirthDate(const std::string& str){
-    if(!isEmpty(str) && hasLength(str,10) && containsOnlyNumbers(str) ){
+    if(!isEmpty(str) && hasLength(str,8) && containsOnlyNumbers(str) ){
         return true;
     }
     return false;
@@ -52,7 +52,7 @@ bool isValidName(const std::string& str){
 
 bool containsOnlyLetters(const std::string& str) {
     for (char c : str) {
-        if (!std::isalpha(c)) {
+        if (!std::isalpha(c) && c != ' ') {
             return false;
         }
     }

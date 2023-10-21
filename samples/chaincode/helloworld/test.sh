@@ -19,7 +19,7 @@ CC_EP="OR('SampleOrg.member')"
 CC_SEQ="1"
 
 run_test() {
-    # install helloworld chaincode
+# install helloworld chaincode
     # input:  CC_ID:chaincode name; CC_VER:chaincode version;
     #         CC_PATH:path to build artifacts
     say "- install helloworld chaincode"
@@ -35,18 +35,6 @@ run_test() {
 
     # create an FPC chaincode enclave
     ${PEER_CMD} lifecycle chaincode initEnclave -o ${ORDERER_ADDR} --peerAddresses "localhost:7051" --name ${CC_ID}
-
- 
-    # store the value of 100 in asset1
-    say "- invoke storeAsset transaction to store value 100 in asset1"
-    ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["storeMyStruct","asset1","100"]}' --waitForEvent
-
-    # retrieve current value for "asset1";  should be 100;
-    say "- invoke retrieveAsset transaction to retrieve current value of asset1"
-    ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["getMyStruct","asset1"]}' --waitForEvent
-
-    say "- invoke query with retrieveAsset transaction to retrieve current value of asset1"
-    ${PEER_CMD} chaincode query  -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["getMyStruct","asset1"]}'
 
 
     # Test Plan:
@@ -70,85 +58,109 @@ run_test() {
     # Try create health record (healthy) for valid person (Bob) should fail, dead
     
 
+
+    para
     # create invalid person should fail
     say "- invoke personBad transaction to create invalid person"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["PersonBorn","123123123","123123123","Johnatan Merquic","12"]}' --waitForEvent
 
 
+
+
+    para
     # create valid person (Alice) should succeed
     say "- invoke personBorn transaction to create valid person (Alice)"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["PersonBorn","123123000","123123000","Alice Monoro","20001112"]}' --waitForEvent
 
+    return
+
+    para
     # create valid person (Bob) should succeed
     say "- invoke personBorn transaction to create valid person (Bob)"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["PersonBorn","123123111","123123111","Bob Monoro","20021112"]}' --waitForEvent
 
+    para
     # create work permit for invalid person should fail
     say "- invoke workPermit transaction to create work permit for invalid person"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueWorkPermit","123123123", "Alice Monoro", "20201010", "WorkPermitAgency"]}' --waitForEvent
 
+    para
     # create work permit for valid person (Alice) should fail, no life insurance
     say "- invoke workPermit transaction to create work permit for valid person (Alice) should fail, no life insurance"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueWorkPermit","123123000", "Alice Monoro", "20201010", "WorkPermitAgency"]}' --waitForEvent
 
+    para
     # create life insurance for invalid person should fail
     say "- invoke lifeInsurance transaction to create life insurance for invalid person should fail"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueLifeInsurance","123123123", "123123123", "20201010", "20301010","100", "200"]}' --waitForEvent
 
+    para
     # create life insurance for valid person (Alice) should fail, no health record
     say "- invoke lifeInsurance transaction to create life insurance for valid person (Alice) should fail, no health record"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueLifeInsurance","123123000", "123123000", "20201010", "20301010","100", "200"]}' --waitForEvent
 
+    para
     # create health record for invalid person should fail
     say "- invoke healthRecord transaction to create health record for invalid person should fail"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueHealthExamination","123123123", "123123123", "20201010", "120", "180"]}' --waitForEvent
 
+    para
     # create health record for valid person (Alice) should succeed
     say "- invoke healthRecord transaction to create health record for valid person (Alice) should succeed"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueHealthExamination","123123000", "123123000", "20201010", "120", "180"]}' --waitForEvent
 
+    para
     # create work permit for valid person (Alice) should fail again, no life insurance
     say "- invoke workPermit transaction to create work permit for valid person (Alice) should fail again, no life insurance"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueWorkPermit","123123000", "Alice Monoro", "20201010", "WorkPermitAgency"]}' --waitForEvent
 
+    para
     # create life insurance for valid person (Alice) should succeed
     say "- invoke lifeInsurance transaction to create life insurance for valid person (Alice) should succeed"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueLifeInsurance","123123000", "123123000", "20201010", "20301010","100", "200"]}' --waitForEvent
 
+    para
     # create work permit for valid person (Alice) should succeed now
     say "- invoke workPermit transaction to create work permit for valid person (Alice) should succeed now"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueWorkPermit","123123000", "Alice Monoro", "20201010", "WorkPermitAgency"]}' --waitForEvent
 
+    para
     # create health record (unhealty) for valid person (Bob) should succeed
     say "- invoke healthRecord transaction to create health record (unhealty) for valid person (Bob) should succeed"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueHealthExamination","123123111", "123123111", "20201010", "210", "100"]}' --waitForEvent
 
+    para
     # create work permit for valid person (Bob) should fail, no life insurance
     say "- invoke workPermit transaction to create work permit for valid person (Bob) should fail, no life insurance"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueWorkPermit","123123111", "Bob Monoro", "20201010", "WorkPermitAgency"]}' --waitForEvent
 
+    para
     # create life insurance for valid person (Bob) should fail, not healthy
     say "- invoke lifeInsurance transaction to create life insurance for valid person (Bob) should fail, not healthy" 
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueLifeInsurance","123123111", "123123111", "20201010", "20301010","100", "200"]}' --waitForEvent
 
+    para
     # invalid person dies, should fail
     say "- invoke personDied transaction to invalid person dies, should fail"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["PersonDie","123123123"]}' --waitForEvent
 
+    para
     # valid person (Bob) dies, should succeed
     say "- invoke personDied transaction to valid person (Bob) dies, should succeed"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["PersonDie","123123111"]}' --waitForEvent
 
+    para
     # create health record (healthy) for valid person (Bob) should fail, dead
     say "- invoke healthRecord transaction to create health record (healthy) for valid person (Bob) should fail, dead"
     ${PEER_CMD} chaincode invoke -o ${ORDERER_ADDR} -C ${CHAN_ID} -n ${CC_ID} -c '{"Args":["IssueHealthExamination","123123111", "123123111", "20201010", "120", "180"]}' --waitForEvent
 
-    
+
+
 
     say "- interact with the FPC chaincode using our client app"
     export CC_ID
     export CHAN_ID
-    go run client_app/helloworld.go
+    #go run client_app/helloworld.go
 
 }
 
