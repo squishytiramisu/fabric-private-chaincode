@@ -644,3 +644,6 @@ test.sh: Helloworld test PASSED
 ```
 
 Congratulations! You have created a client app using the FPC Client SDK to invoke your FPC chaincode!
+
+
+args, Jozsi vagyok, signed_joszi_sk(hashof(args))

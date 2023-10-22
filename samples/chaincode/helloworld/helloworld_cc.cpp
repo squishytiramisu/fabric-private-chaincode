@@ -14,9 +14,9 @@ const std::string VALID_TAJ = "123456789";
 std::string personBorn(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string name, std::string birth_date){
 
     //Validate request
-    /*(!validPersonBorn(id, taj, name, birth_date, ctx)){
+    if(!validPersonBorn(id, taj, name, birth_date, ctx)){
         return "ERROR: Invalid request";
-    }*/
+    }
 
     // create new person
     person_t new_person;
@@ -32,7 +32,7 @@ std::string personBorn(shim_ctx_ptr_t ctx, std::string id, std::string taj, std:
 std::string personDie(shim_ctx_ptr_t ctx, std::string id){
 
     // check if person already exists
-    if(!validPersonDie(id, ctx)){
+    if(!validPersonDie(id, ctx )){
         return "ERROR: Person does not exist or already dead";
     }
 
@@ -47,9 +47,9 @@ std::string personDie(shim_ctx_ptr_t ctx, std::string id){
 std::string issueHealthExamination(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string examination_date, int systole, int diastole){
 
     // check if person already exists
-    /*if(!validIssueHealthExamination(id, taj, examination_date, systole, diastole, ctx)){
+    if(!validIssueHealthExamination(id, taj, examination_date, systole, diastole, ctx)){
         return "ERROR: Person does not exist or already dead";
-    }*/
+    }
         
     health_examination_t new_examination;
     new_examination.date = (char*)examination_date.c_str();
@@ -66,7 +66,7 @@ std::string issueHealthExamination(shim_ctx_ptr_t ctx, std::string id, std::stri
 std::string issueLifeInsurance(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string from, std::string to, int cost, int payment, bool should_pay){
 
     // check if person already exists
-    /*if(!idExists(id, ctx)){
+    if(!idExists(id, ctx)){
         return "ERROR: Person does not exist";
     }
     if(!isAlive(id, ctx)){
@@ -76,7 +76,7 @@ std::string issueLifeInsurance(shim_ctx_ptr_t ctx, std::string id, std::string t
     //NOT WORKING
     if(!isHealthy(id, ctx)){
         return "ERROR: Person is not healthy";
-    }*/
+    }
         
     life_insurance_t new_life_insurance;
 
@@ -96,9 +96,9 @@ std::string issueLifeInsurance(shim_ctx_ptr_t ctx, std::string id, std::string t
 std::string issueWorkPermit(shim_ctx_ptr_t ctx, std::string id, std::string name, std::string from, std::string issuer){
 
     // check if person already exists
-    /*if(!validIssueWorkPermit(id, name, from, issuer, ctx)){
+    if(!validIssueWorkPermit(id, name, from, issuer, ctx)){
         return "ERROR: Person does not exist or is not eligible for work permit";
-    }*/
+    }
         
     work_permit_t new_work_permit;
     new_work_permit.id = (char*)id.c_str();
@@ -190,6 +190,9 @@ int invoke(
         std::string birth_date = params[3];
         result = personBorn(ctx, id, taj, name, birth_date);
 
+        //std::string aha = "aha";
+
+        //put_public_state("aha", (uint8_t*)aha.c_str(), aha.length(), ctx);
 
         prepareResult(result, response, max_response_len, actual_response_len);
         return 0;
@@ -327,7 +330,16 @@ int invoke(
         }
         std::string id = params[0];
         work_permit_t the_work_permit = getWorkPermit((id).c_str(), ctx);
+
+
         result = marshal_work_permit(&the_work_permit);
+        uint32_t datamap_bytes_len = 0;
+        uint8_t datamap_bytes[MAX_VALUE_SIZE];
+
+        //get_public_state("aha", datamap_bytes, sizeof(datamap_bytes), &datamap_bytes_len, ctx);
+        //std::string aha = (const char*)datamap_bytes;
+
+
         prepareResult(result, response, max_response_len, actual_response_len);
         return 0;
     }

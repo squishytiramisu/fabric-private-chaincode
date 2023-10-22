@@ -2,7 +2,7 @@ package main
 
 import (
 	"os"
-
+    "strings"
 	fpc "github.com/hyperledger/fabric-private-chaincode/client_sdk/go/pkg/gateway"
 	"github.com/hyperledger/fabric-private-chaincode/integration/client_sdk/go/utils"
 	"github.com/hyperledger/fabric/common/flogging"
@@ -131,8 +131,13 @@ func main() {
            logger.Fatalf("Failed to invoke transaction: " + err1.Error())
         }
 
-        // Process the result
-        logger.Infof("Result of %s: %s\n", tx.Name, string(result))
+        // If result contains ERROR text in it use Fatal logger
+        if (strings.Contains(string(result), "ERROR")) {
+            logger.Warningf("Transaction failed %s: %s\n\n\n", tx.Name, string(result))
+        }else{
+            logger.Infof("Result of %s: %s\n\n\n", tx.Name, string(result))
+        }
+
     }
 
 
