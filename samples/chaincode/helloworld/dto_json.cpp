@@ -122,7 +122,7 @@ int unmarshal_work_permit(work_permit_t* work_permit, const char* json_bytes, ui
 
 // data map
 
-std::string marshal_data_map(const data_map_t& data_map) {
+std::string marshal_data_map(data_map_t* data_map) {
     JSON_Value* root_value = json_value_init_object();
     JSON_Object* root_object = json_value_get_object(root_value);
 
@@ -130,7 +130,7 @@ std::string marshal_data_map(const data_map_t& data_map) {
     JSON_Value* persons_value = json_value_init_object();
     JSON_Object* persons_object = json_value_get_object(persons_value);
 
-    for (const auto& entry : data_map.persons) {
+    for (const auto& entry : data_map->persons) {
         JSON_Value* person_value = json_value_init_object();
         JSON_Object* person_object = json_value_get_object(person_value);
 
@@ -149,7 +149,7 @@ std::string marshal_data_map(const data_map_t& data_map) {
     JSON_Value* health_examinations_value = json_value_init_object();
     JSON_Object* health_examinations_object = json_value_get_object(health_examinations_value);
 
-    for (const auto& entry : data_map.health_examinations) {
+    for (const auto& entry : data_map->health_examinations) {
         JSON_Value* health_exam_value = json_value_init_object();
         JSON_Object* health_exam_object = json_value_get_object(health_exam_value);
 
@@ -164,6 +164,45 @@ std::string marshal_data_map(const data_map_t& data_map) {
 
     json_object_set_value(root_object, "health_examinations", health_examinations_value);
 
+    // Marshal life_insurances map
+    JSON_Value* life_insurances_value = json_value_init_object();
+    JSON_Object* life_insurances_object = json_value_get_object(life_insurances_value);
+
+    for (const auto& entry : data_map->life_insurances) {
+        JSON_Value* life_insurance_value = json_value_init_object();
+        JSON_Object* life_insurance_object = json_value_get_object(life_insurance_value);
+
+        json_object_set_string(life_insurance_object, "id", entry.second.id.c_str());
+        json_object_set_string(life_insurance_object, "taj", entry.second.taj.c_str());
+        json_object_set_string(life_insurance_object, "from", entry.second.from.c_str());
+        json_object_set_string(life_insurance_object, "to", entry.second.to.c_str());
+        json_object_set_number(life_insurance_object, "cost", entry.second.cost);
+        json_object_set_number(life_insurance_object, "payment", entry.second.payment);
+        json_object_set_boolean(life_insurance_object, "should_pay", entry.second.should_pay);
+
+        json_object_set_value(life_insurances_object, entry.first.c_str(), life_insurance_value);
+    }
+
+    json_object_set_value(root_object, "life_insurances", life_insurances_value);
+
+    // Marshal work_permits map
+    JSON_Value* work_permits_value = json_value_init_object();
+    JSON_Object* work_permits_object = json_value_get_object(work_permits_value);
+
+    for (const auto& entry : data_map->work_permits) {
+        JSON_Value* work_permit_value = json_value_init_object();
+        JSON_Object* work_permit_object = json_value_get_object(work_permit_value);
+
+        json_object_set_string(work_permit_object, "id", entry.second.id.c_str());
+        json_object_set_string(work_permit_object, "name", entry.second.name.c_str());
+        json_object_set_string(work_permit_object, "from", entry.second.from.c_str());
+        json_object_set_string(work_permit_object, "issuer", entry.second.issuer.c_str());
+
+        json_object_set_value(work_permits_object, entry.first.c_str(), work_permit_value);
+    }
+
+    json_object_set_value(root_object, "work_permits", work_permits_value);
+
     char* json_str = json_serialize_to_string_pretty(root_value);
     std::string result(json_str);
 
@@ -172,10 +211,9 @@ std::string marshal_data_map(const data_map_t& data_map) {
 }
 
 // Function to unmarshal a JSON string into a data_map_t object
-data_map_t unmarshal_data_map(const std::string& json_str) {
-    data_map_t result;
+int unmarshal_data_map(data_map_t* data_map, const char* json_bytes, uint32_t json_len) {
 
-    JSON_Value* root_value = json_parse_string(json_str.c_str());
+    JSON_Value* root_value = json_parse_string(json_bytes);
     JSON_Object* root_object = json_value_get_object(root_value);
 
     // Unmarshal persons map
@@ -193,7 +231,7 @@ data_map_t unmarshal_data_map(const std::string& json_str) {
         person.birth_date = json_object_get_string(person_object, "birth_date");
         person.death_date = json_object_get_string(person_object, "death_date");
 
-        result.persons[key] = person;
+        data_map->persons[key] = person;
     }
 
     // Unmarshal health_examinations map
@@ -211,9 +249,46 @@ data_map_t unmarshal_data_map(const std::string& json_str) {
         health_exam.diastole = (int)json_object_get_number(health_exam_object, "diastole");
         health_exam.date = json_object_get_string(health_exam_object, "date");
 
-        result.health_examinations[key] = health_exam;
+        data_map->health_examinations[key] = health_exam;
+    }
+
+    // Unmarshal life_insurances map
+    JSON_Object* life_insurances_object = json_object_get_object(root_object, "life_insurances");
+    count = json_object_get_count(life_insurances_object);
+
+    for (size_t i = 0; i < count; ++i) {
+        const char* key = json_object_get_name(life_insurances_object, i);
+        JSON_Object* life_insurance_object = json_object_get_object(life_insurances_object, key);
+        life_insurance_t life_insurance;
+
+        life_insurance.id = json_object_get_string(life_insurance_object, "id");
+        life_insurance.taj = json_object_get_string(life_insurance_object, "taj");
+        life_insurance.from = json_object_get_string(life_insurance_object, "from");
+        life_insurance.to = json_object_get_string(life_insurance_object, "to");
+        life_insurance.cost = (int)json_object_get_number(life_insurance_object, "cost");
+        life_insurance.payment = (int)json_object_get_number(life_insurance_object, "payment");
+        life_insurance.should_pay = json_object_get_boolean(life_insurance_object, "should_pay");
+
+        data_map->life_insurances[key] = life_insurance;
+    }
+
+    // Unmarshal work_permits map
+    JSON_Object* work_permits_object = json_object_get_object(root_object, "work_permits");
+    count = json_object_get_count(work_permits_object);
+
+    for (size_t i = 0; i < count; ++i) {
+        const char* key = json_object_get_name(work_permits_object, i);
+        JSON_Object* work_permit_object = json_object_get_object(work_permits_object, key);
+        work_permit_t work_permit;
+
+        work_permit.id = json_object_get_string(work_permit_object, "id");
+        work_permit.name = json_object_get_string(work_permit_object, "name");
+        work_permit.from = json_object_get_string(work_permit_object, "from");
+        work_permit.issuer = json_object_get_string(work_permit_object, "issuer");
+
+        data_map->work_permits[key] = work_permit;
     }
 
     json_value_free(root_value);
-    return result;
+    return 1;
 }

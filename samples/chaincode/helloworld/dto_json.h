@@ -54,6 +54,8 @@ typedef struct work_permit{
 typedef struct data_map{
     std::map <std::string, person_t> persons;
     std::map <std::string, health_examination_t> health_examinations;
+    std::map <std::string, life_insurance_t> life_insurances;
+    std::map <std::string, work_permit_t> work_permits;
 } data_map_t;
 
 

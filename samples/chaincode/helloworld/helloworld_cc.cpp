@@ -11,21 +11,12 @@
 
 const std::string VALID_TAJ = "123456789";
 
-const std::string PERSON_PREFIX = ".P.";
-
-const std::string HEALTH_EXAMINATION_PREFIX = "h";
-
-const std::string LIFE_INSURANCE_PREFIX = ".L.";
-
-const std::string WORK_PERMIT_PREFIX = ".W.";
-
-
 std::string personBorn(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string name, std::string birth_date){
 
     //Validate request
-    if(!validPersonBorn(id, taj, name, birth_date, ctx)){
+    /*(!validPersonBorn(id, taj, name, birth_date, ctx)){
         return "ERROR: Invalid request";
-    }
+    }*/
 
     // create new person
     person_t new_person;
@@ -35,13 +26,7 @@ std::string personBorn(shim_ctx_ptr_t ctx, std::string id, std::string taj, std:
     new_person.birth_date = (char*)birth_date.c_str();
     new_person.death_date = "";
 
-
-    // convert to json string and store
-    std::string json = marshal_person(&new_person);
-
-    put_state((PERSON_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
-
-    return OK;
+    return putPerson(new_person, ctx);
 }
 
 std::string personDie(shim_ctx_ptr_t ctx, std::string id){
@@ -51,10 +36,10 @@ std::string personDie(shim_ctx_ptr_t ctx, std::string id){
         return "ERROR: Person does not exist or already dead";
     }
 
-    person_t the_person = getPerson((PERSON_PREFIX+id).c_str(), ctx);
+    person_t the_person = getPerson((id).c_str(), ctx);
     the_person.death_date = "TODO";
     std::string json = marshal_person(&the_person);
-    put_state((PERSON_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
+    put_state((id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
     
     return OK;
 }
@@ -62,9 +47,9 @@ std::string personDie(shim_ctx_ptr_t ctx, std::string id){
 std::string issueHealthExamination(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string examination_date, int systole, int diastole){
 
     // check if person already exists
-    if(!validIssueHealthExamination(id, taj, examination_date, systole, diastole, ctx)){
+    /*if(!validIssueHealthExamination(id, taj, examination_date, systole, diastole, ctx)){
         return "ERROR: Person does not exist or already dead";
-    }
+    }*/
         
     health_examination_t new_examination;
     new_examination.date = (char*)examination_date.c_str();
@@ -73,19 +58,15 @@ std::string issueHealthExamination(shim_ctx_ptr_t ctx, std::string id, std::stri
     new_examination.taj = (char*)taj.c_str();
     new_examination.id = (char*)id.c_str();
         
-    std::string json = marshal_health_examination(&new_examination);
-    
-    // TODO increment number of examinations
-    put_state(("xdd"), (uint8_t*)json.c_str(), json.size(), ctx);
-    
-    return OK;
+
+    return putHealthExamination(new_examination, ctx);
 }
 
 
 std::string issueLifeInsurance(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string from, std::string to, int cost, int payment, bool should_pay){
 
     // check if person already exists
-    if(!idExists(id, ctx)){
+    /*if(!idExists(id, ctx)){
         return "ERROR: Person does not exist";
     }
     if(!isAlive(id, ctx)){
@@ -95,7 +76,7 @@ std::string issueLifeInsurance(shim_ctx_ptr_t ctx, std::string id, std::string t
     //NOT WORKING
     if(!isHealthy(id, ctx)){
         return "ERROR: Person is not healthy";
-    }
+    }*/
         
     life_insurance_t new_life_insurance;
 
@@ -109,18 +90,15 @@ std::string issueLifeInsurance(shim_ctx_ptr_t ctx, std::string id, std::string t
     new_life_insurance.should_pay = should_pay;
 
 
-    std::string json = marshal_life_insurance(&new_life_insurance);
-
-    put_state((LIFE_INSURANCE_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
-    return OK;
+    return putLifeInsurance(new_life_insurance, ctx);
 }
 
 std::string issueWorkPermit(shim_ctx_ptr_t ctx, std::string id, std::string name, std::string from, std::string issuer){
 
     // check if person already exists
-    if(!validIssueWorkPermit(id, name, from, issuer, ctx)){
+    /*if(!validIssueWorkPermit(id, name, from, issuer, ctx)){
         return "ERROR: Person does not exist or is not eligible for work permit";
-    }
+    }*/
         
     work_permit_t new_work_permit;
     new_work_permit.id = (char*)id.c_str();
@@ -128,10 +106,7 @@ std::string issueWorkPermit(shim_ctx_ptr_t ctx, std::string id, std::string name
     new_work_permit.from = (char*)from.c_str();
     new_work_permit.issuer = (char*)issuer.c_str();
         
-    std::string json = marshal_work_permit(&new_work_permit);
-    put_state((WORK_PERMIT_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
-    return OK;
-
+    return putWorkPermit(new_work_permit, ctx);
 }
 
 
@@ -142,10 +117,10 @@ std::string revokeWorkPermit(shim_ctx_ptr_t ctx, std::string id){
             return "ERROR: Person does not exist or is not eligible for work permit";
         }
 
-        work_permit_t the_work_permit = getWorkPermit((WORK_PERMIT_PREFIX+id).c_str(), ctx);
+        work_permit_t the_work_permit = getWorkPermit((id).c_str(), ctx);
         the_work_permit.from = "";
         std::string json = marshal_work_permit(&the_work_permit);
-        put_state((WORK_PERMIT_PREFIX+id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
+        put_state((id).c_str(), (uint8_t*)json.c_str(), json.size(), ctx);
 
         return OK;
 }
@@ -202,10 +177,6 @@ int invoke(
 
     /////////////// FUNCTION SWITCH ///////////////////////
 
-    
-
-
-
     if(function_name == "PersonBorn"){
         if(params.size() != 4){
             LOG_DEBUG("personCC: PersonBorn: Wrong number of arguments");
@@ -218,6 +189,8 @@ int invoke(
         std::string name = params[2];
         std::string birth_date = params[3];
         result = personBorn(ctx, id, taj, name, birth_date);
+
+
         prepareResult(result, response, max_response_len, actual_response_len);
         return 0;
 
@@ -311,7 +284,7 @@ int invoke(
         }
 
         std::string id = params[0];
-        person_t the_person = getPerson((PERSON_PREFIX+id).c_str(), ctx);
+        person_t the_person = getPerson((id).c_str(), ctx);
         result = marshal_person(&the_person);
         prepareResult(result, response, max_response_len, actual_response_len);
         return 0;
@@ -325,7 +298,7 @@ int invoke(
         }
 
         std::string id = params[0];
-        health_examination_t the_health_examination = getHealthExamination((HEALTH_EXAMINATION_PREFIX+id).c_str(), ctx);
+        health_examination_t the_health_examination = getHealthExamination((id).c_str(), ctx);
         result = marshal_health_examination(&the_health_examination);
         prepareResult(result, response, max_response_len, actual_response_len);
         return 0;
@@ -339,7 +312,7 @@ int invoke(
 
         }
         std::string id = params[0];
-        life_insurance_t the_life_insurance = getLifeInsurance((LIFE_INSURANCE_PREFIX+id).c_str(), ctx);
+        life_insurance_t the_life_insurance = getLifeInsurance(id.c_str(), ctx);
         result = marshal_life_insurance(&the_life_insurance);
         prepareResult(result, response, max_response_len, actual_response_len);
         return 0;
@@ -353,7 +326,7 @@ int invoke(
 
         }
         std::string id = params[0];
-        work_permit_t the_work_permit = getWorkPermit((WORK_PERMIT_PREFIX+id).c_str(), ctx);
+        work_permit_t the_work_permit = getWorkPermit((id).c_str(), ctx);
         result = marshal_work_permit(&the_work_permit);
         prepareResult(result, response, max_response_len, actual_response_len);
         return 0;
