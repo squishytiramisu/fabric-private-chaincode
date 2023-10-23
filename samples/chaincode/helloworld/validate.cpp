@@ -132,7 +132,7 @@ bool isAlive(const std::string& id, shim_ctx_ptr_t ctx){
 
     person_t person = getPerson(id, ctx);
     
-    if(person.id == id && person.death_date != ""){
+    if(person.id == id && person.death_date == ""){
         return true;
     }
 

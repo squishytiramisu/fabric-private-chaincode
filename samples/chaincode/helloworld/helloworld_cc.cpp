@@ -46,9 +46,21 @@ std::string personDie(shim_ctx_ptr_t ctx, std::string id){
 
 std::string issueHealthExamination(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string examination_date, int systole, int diastole){
 
-    // check if person already exists
-    if(!validIssueHealthExamination(id, taj, examination_date, systole, diastole, ctx)){
-        return "ERROR: Person does not exist or already dead";
+    std::string validFuncName = "";
+    if (!isValidTaj(taj)) {
+        validFuncName = "isValidTaj";
+    } else if (!isValidId(id)) {
+        validFuncName = "isValidId";
+    } else if (!isValidDate(examination_date)) {
+        validFuncName = "isValidDate";
+    } else if (!idExists(id, ctx)) {
+        validFuncName = "idExists";
+    } else if (!isAlive(id, ctx)) {
+        validFuncName = "isAlive";
+    }
+
+    if (!validFuncName.empty()) {
+        return validFuncName;
     }
         
     health_examination_t new_examination;
@@ -190,9 +202,11 @@ int invoke(
         std::string birth_date = params[3];
         result = personBorn(ctx, id, taj, name, birth_date);
 
-        //std::string aha = "aha";
+        std::string aha = "aha";
 
-        //put_public_state("aha", (uint8_t*)aha.c_str(), aha.length(), ctx);
+        put_public_state("aha", (uint8_t*)aha.c_str(), aha.length(), ctx);
+        put_public_state("sdf", (uint8_t*)aha.c_str(), aha.length(), ctx);
+    
 
         prepareResult(result, response, max_response_len, actual_response_len);
         return 0;
@@ -336,11 +350,11 @@ int invoke(
         uint32_t datamap_bytes_len = 0;
         uint8_t datamap_bytes[MAX_VALUE_SIZE];
 
-        //get_public_state("aha", datamap_bytes, sizeof(datamap_bytes), &datamap_bytes_len, ctx);
-        //std::string aha = (const char*)datamap_bytes;
+        get_public_state("aha", datamap_bytes, sizeof(datamap_bytes), &datamap_bytes_len, ctx);
+        std::string aha = (const char*)datamap_bytes;
 
 
-        prepareResult(result, response, max_response_len, actual_response_len);
+        prepareResult(aha, response, max_response_len, actual_response_len);
         return 0;
     }
     else{
