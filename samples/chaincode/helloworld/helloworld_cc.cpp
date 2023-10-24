@@ -26,11 +26,11 @@ std::string dummyEncrypt(std::string input){
 //params: g: 74564094343119386, g_hat: 77929355568141139, q: 1073067082236043, p: 109452842388076387, y: 8169135570303051890, m: hello
 //elgamal_encrypt(BIGNUM* g, BIGNUM* g_hat, BIGNUM* q, BIGNUM* p, BIGNUM* y, const std::string& m);
     
-    std::string g = "160172861198496142";
-    std::string g_hat = "12167346400598986";
-    std::string q = "1028101291338439";
-    std::string p = "257025322834609751";
-    std::string y = "123457389917166958";
+    std::string g = "236707";
+    std::string g_hat = "482725";
+    std::string q = "35267";
+    std::string p = "634807";
+    std::string y = "486591";
     std::string m = "hello";
 
     BIGNUM* g_bn = BN_new();
