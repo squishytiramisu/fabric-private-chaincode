@@ -66,7 +66,7 @@ try
     // END COMPUTE M HEX
 
 
-    std::string ha = "236fdad5bfb855098d2963fe7cce4189abf696599f010367c01938bdf3f78ac2";
+    std::string ha = BN_bn2hex(h);
 
     
 
@@ -76,6 +76,7 @@ try
     BIGNUM *h_bn = BN_new();
     BN_hex2bn(&m_bn, m_hex.c_str());
     BN_hex2bn(&h_bn, ha.c_str());
+
     size_t max_len = std::max(BN_num_bytes(m_bn), BN_num_bytes(h_bn));
     unsigned char *m_bin = static_cast<unsigned char *>(OPENSSL_malloc(max_len));
     unsigned char *h_bin = static_cast<unsigned char *>(OPENSSL_malloc(max_len));
