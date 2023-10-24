@@ -30,6 +30,11 @@ func main() {
 		Desc string
     }{
         {
+            Name: "dummyEncrypt",
+            Args: []string{"123123111"},
+			Desc: " ELGAMAL TEST",
+        },
+        /*{
             Name: "PersonBorn",
             Args: []string{"123123111", "123123111", "Alice Monoro", "20021112"},
 			Desc: "- invoke personBorn transaction to create valid person (Alice)",
@@ -88,7 +93,7 @@ func main() {
             Name: "getWorkPermit",
             Args: []string{"123123111"},
             Desc: "- invoke getWorkPermit transaction to get work permit of person (Alice)",
-        },
+        },*/
     }
 
     // Iterate through the transactions and invoke them

@@ -42,6 +42,11 @@ add_definitions(-DENCLAVE_CODE)
 
 set_target_properties(enclave PROPERTIES PREFIX "")
 
+
+set( DEPS_SOURCES_ROOT "$ENV{FPC_PATH}/samples/chaincode/helloworld")
+include_directories( ${DEPS_SOURCES_ROOT}/cryptopp )
+
+
 target_link_libraries(enclave "${SGX_COMMON_CFLAGS} -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles \
 -L${COMMON_SOURCE_DIR}/logging/_build \
 -L${COMMON_SOURCE_DIR}/crypto/_build \
@@ -56,6 +61,22 @@ target_link_libraries(enclave "${SGX_COMMON_CFLAGS} -Wl,--no-undefined -nostdlib
 -Wl,-pie,-eenclave_entry -Wl,--export-dynamic \
 -Wl,--defsym,__ImageBase=0 \
 -Wl,--version-script=${ECC_ENCLAVE_DIR}/enclave/enclave.lds")
+
+
+
+
+
+#find_library(BLE_LOC bls PATHS $ENV{FPC_PATH}/samples/chaincode/helloworld/libBLS/build)
+#find_library( GMP_LIBRARY NAMES "gmp" PATHS "${DEPS_INSTALL_ROOT}/lib" )
+#find_library( GMPXX_LIBRARY NAMES "gmpxx" PATHS "${DEPS_INSTALL_ROOT}/lib" )
+#find_library( SSL_LIB NAMES "ssl" PATHS "${DEPS_INSTALL_ROOT}/lib")
+#find_library( CRYPTO_LIB NAMES "crypto"  PATHS "${DEPS_INSTALL_ROOT}/lib")
+#find_library( FF_LIB NAMES NAMES "ff" PATHS "${DEPS_INSTALL_ROOT}/lib")
+
+#target_link_libraries(enclave ${BLE_LOC} ${FF_LIB} ${GMPXX_LIBRARY} ${GMP_LIBRARY} ${BOOST_LIBS_4_BLS} ${CRYPTO_LIB} ${SSL_LIB})
+
+
+
 
 add_custom_command(TARGET enclave
     POST_BUILD

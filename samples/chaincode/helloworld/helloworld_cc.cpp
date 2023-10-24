@@ -9,9 +9,53 @@
 #include "get_functions.h"
 #include "constants.h"
 
+//#include "crypto.h"
+
+//#include "../../../common/crypto/pdo/common/crypto/crypto_shared.h"
+
+
+
+#include "elgamal.h"
+
+
 const std::string VALID_TAJ = "123456789";
 
+std::string dummyEncrypt(std::string input){
+
+
+//params: g: 74564094343119386, g_hat: 77929355568141139, q: 1073067082236043, p: 109452842388076387, y: 8169135570303051890, m: hello
+//elgamal_encrypt(BIGNUM* g, BIGNUM* g_hat, BIGNUM* q, BIGNUM* p, BIGNUM* y, const std::string& m);
+    
+    std::string g = "160172861198496142";
+    std::string g_hat = "12167346400598986";
+    std::string q = "1028101291338439";
+    std::string p = "257025322834609751";
+    std::string y = "123457389917166958";
+    std::string m = "hello";
+
+    BIGNUM* g_bn = BN_new();
+    BIGNUM* g_hat_bn = BN_new();
+    BIGNUM* q_bn = BN_new();
+    BIGNUM* p_bn = BN_new();
+    BIGNUM* y_bn = BN_new();
+    BIGNUM* m_bn = BN_new();
+
+    BN_dec2bn(&g_bn, g.c_str());
+    BN_dec2bn(&g_hat_bn, g_hat.c_str());
+    BN_dec2bn(&q_bn, q.c_str());
+    BN_dec2bn(&p_bn, p.c_str());
+    BN_dec2bn(&y_bn, y.c_str());
+    BN_dec2bn(&m_bn, m.c_str());
+
+    
+    std::string encrypted = elgamal_encrypt(g_bn, g_hat_bn, q_bn, p_bn, y_bn, m);
+    return encrypted;
+
+}
+
+
 std::string personBorn(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string name, std::string birth_date){
+
 
     //Validate request
     if(!validPersonBorn(id, taj, name, birth_date, ctx)){
@@ -157,7 +201,7 @@ void prepareResult(std::string result, uint8_t* response, uint32_t max_response_
         // error:  buffer too small for the response to be sent
         LOG_DEBUG("HelloworldCC: Response buffer too small");
         *actual_response_len = 0;
-        return;
+        result = "ERROR: Response buffer too small";
     }
 
     // copy result to response
@@ -188,6 +232,20 @@ int invoke(
         real_bidder_name_msp_id, real_bidder_name_dn);
 
     /////////////// FUNCTION SWITCH ///////////////////////
+
+    if(function_name == "dummyEncrypt"){
+        if(params.size() != 1){
+            LOG_DEBUG("personCC: dummyEncrypt: Wrong number of arguments");
+            result = "ERROR: Wrong number of arguments";
+            prepareResult(result, response, max_response_len, actual_response_len);
+            return 0;
+        }
+
+        std::string input = params[0];
+        result = dummyEncrypt(input);
+        prepareResult(result, response, max_response_len, actual_response_len);
+        return 0;
+    }
 
     if(function_name == "PersonBorn"){
         if(params.size() != 4){
