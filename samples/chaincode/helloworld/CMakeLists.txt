@@ -7,6 +7,8 @@ set(SOURCE_FILES
     complex_validations.cpp
     get_functions.cpp
     elgamal.cpp
+    access.cpp
+    events.cpp
     )
 
 
@@ -15,7 +17,6 @@ set(SOURCE_FILES
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
-    $ENV{FPC_PATH}/samples/chaincode/helloworld/libBLS
     )
     
 include($ENV{FPC_PATH}/ecc_enclave/enclave/CMakeLists-common-app-enclave.txt)
