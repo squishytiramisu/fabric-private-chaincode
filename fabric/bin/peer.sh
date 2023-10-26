@@ -16,7 +16,7 @@
 #   so make sure externally than 'channel join' is called only for a single channel.
 
 #RUN=echo   # uncomment (or define when calling script) to dry-run peer call
-DEBUG=true # uncomment (or define when calling script) to show debug output
+#DEBUG=true # uncomment (or define when calling script) to show debug output
 
 SCRIPTDIR="$(dirname $(readlink --canonicalize ${BASH_SOURCE}))"
 FPC_PATH="${SCRIPTDIR}/../../"
