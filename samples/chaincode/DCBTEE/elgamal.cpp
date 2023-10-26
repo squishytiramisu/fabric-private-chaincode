@@ -129,7 +129,7 @@ std::string elgamal_encrypt(BIGNUM* g, BIGNUM* g_hat, BIGNUM* q, BIGNUM* p, BIGN
     BN_free(w_hat);
     BN_free(e);
     BN_free(f);
-    return std::string(c_hex) + " " + std::string(u_str) + " " + std::string(u_hat_str) + " " + std::string(e_str) + " " + std::string(f_str);
+    return std::string("OK: ") + c_hex + " " + std::string(u_str) + " " + std::string(u_hat_str) + " " + std::string(e_str) + " " + std::string(f_str);
 
 }
 

@@ -2,13 +2,13 @@ package main
 
 import (
 	"os"
-    "strings"
+    "time"
 	fpc "github.com/hyperledger/fabric-private-chaincode/client_sdk/go/pkg/gateway"
 	"github.com/hyperledger/fabric-private-chaincode/integration/client_sdk/go/utils"
 	"github.com/hyperledger/fabric/common/flogging"
 )
 
-var logger = flogging.MustGetLogger("AccessControl")
+var logger = flogging.MustGetLogger("Performance")
 
 func main() {
 	ccID := os.Getenv("CC_ID")
@@ -17,7 +17,10 @@ func main() {
 	channelID := os.Getenv("CHAN_ID")
 	logger.Infof("Use channel: %v", channelID)
 
+	// get network
 	network, _ := utils.SetupNetwork(channelID)
+
+	// Get FPC Contract
 	contract := fpc.GetContract(network, ccID)
 
     params := struct{
@@ -45,47 +48,8 @@ func main() {
     }{
         {
             Name: "initAccessControl",
-            Args: []string{"PersonBorn:Org1,Org2;PersonDie:Org1;IssueHealthExamination:Org1;IssueLifeInsurance:Org1;IssueWorkPermit:Org1;hasWorkPermit:Org1;initEncryption:Org1;","Org1"},
+            Args: []string{"PersonBorn:Org1;PersonDie:Org1;IssueHealthExamination:Org1;IssueLifeInsurance:Org1;IssueWorkPermit:Org1;hasWorkPermit:Org1;initEncryption:Org1;","Org1"},
             Desc: "transaction to initialize access control: should succeed",
-        },
-        {
-            Name: "initEncryption",
-            Args: []string{"696045", "1445688", "26681", "2614739", "1391988","Org3"},
-            Desc: "transaction to initialize encryption parameters: should fail, insufficent rights",
-        },
-        {
-            Name: "PersonBorn",
-            Args: []string{"123123000", "123123000", "Alice Monoro", "20001112","Org3"},
-			Desc: "transaction to create person (Alice): should fail, insufficent rights",
-        },
-		{
-            Name: "IssueHealthExamination",
-            Args: []string{"123123000", "123123000", "20201010", "120", "80","Org3"},
-			Desc: "transaction to create health record for (Alice): should fail, insufficent rights",
-        },
-		{
-            Name: "IssueLifeInsurance",
-            Args: []string{"123123000", "123123000", "20201010", "20301010","100", "200","Org3"},
-			Desc: "transaction to create life insurance for (Alice): should fail, insufficent rights",
-        },
-		{
-            Name: "IssueWorkPermit",
-            Args: []string{"123123000", "Alice Monoro", "20201010", "WorkPermitAgency","Org3"},
-			Desc: "transaction to create work permit for (Alice): should fail, insufficent rights",
-        },
-        {
-            Name: "hasWorkPermit",
-            Args: []string{"123123000","Org3"},
-            Desc: "transaction to check if (Alice) has work permit: should fail, insufficent rights",
-        },
-		{
-            Name: "PersonDie",
-            Args: []string{"123123000","Org3"},
-			Desc: "transaction to register (Alice) as dead: should fail, insufficent rights",
-        },
-        {
-            Name: "divider",
-            Desc: "Next transactions should succeed, because Org1 has access to all functions",
         },
         {
             Name: "initEncryption",
@@ -127,31 +91,71 @@ func main() {
     
     logger.Infof("Public encryption parameters: Threshold(k/n): %v/%v Group generators(G/G_hat): %v/%v, Group order: %v, Modulus: %v, Public Key: %v", params.k, params.n, params.G,params.GH ,params.Q, params.P, params.Y)
     
+    invoke_count := int64(0)
+    sum_time :=int64(0)
 
     // Iterate through the transactions and invoke them
     for _, tx := range transactions {
+        invoke_count += 1
 
-        if(strings.Contains(string(tx.Name), "divider")){
-            logger.Infof("------------------------------------------------------")
-            logger.Infof("%s", tx.Desc)
-            logger.Infof("------------------------------------------------------")
-            continue
-        }
+        start := time.Now()
+        result, _ := contract.SubmitTransaction(tx.Name, tx.Args...)
+		end := time.Now()
 
-        result, err1 := contract.SubmitTransaction(tx.Name, tx.Args...)
-		logger.Infof("Invoking %s %s ", tx.Name, tx.Desc)
-        if err1 != nil {
-           logger.Fatalf("Something went wrong: " + err1.Error())
-        }
-
-        if (strings.Contains(string(tx.Desc), "succeed")) {
-            logger.Infof("Result: %s", string(result))
-        }else{
-            logger.Infof("Transaction failed: %s", string(result))
-        }
-
+        logger.Infof("Invoking %s %s ", tx.Name, tx.Desc)
+        logger.Infof("Took: %v Result: %s ", end.Sub(start).Milliseconds(),string(result))
+        sum_time += end.Sub(start).Milliseconds()
     }
 
+    logger.Infof("Invoked %v transactions", invoke_count)
+    logger.Infof("Average time: %v ms", sum_time/invoke_count)
+
+    logger.Infof("------------------------------------------------------")
+    logger.Infof("Now testing the encryption method 1000 times")
+    invoke_count = 0
+    sum_time = 0
+    // Iterate through the transactions and invoke them
+
+    tx := struct {
+        Name string
+        Args []string
+        Desc string
+    }{
+        Name: "hasWorkPermit",
+        Args: []string{"123123000","Org1"},
+        Desc: "transaction to check if (Alice) has work permit: should succeed",
+    }
+
+    for i := 0; i < 1000; i++ {
+        invoke_count += 1
+        start := time.Now()
+        contract.EvaluateTransaction(tx.Name, tx.Args...)
+        end := time.Now()
+        sum_time += end.Sub(start).Milliseconds()
+    }
+
+    logger.Infof("Invoked %v hasWorkPermits", invoke_count)
+    logger.Infof("Average time: %v ms", sum_time/invoke_count)
+
+
+    logger.Infof("------------------------------------------------------")
+    logger.Infof("Now testing adding a new person 100 times")
+    invoke_count = 0
+    sum_time = 0
+    for index := 0; index < 100; index++ {
+        invoke_count += 1
+        start := time.Now()
+        tx.Args[0] = string(100000000 + index)
+        contract.SubmitTransaction(tx.Name, tx.Args...)
+		end := time.Now()
+
+        logger.Infof("Took: %v", end.Sub(start).Milliseconds())
+
+        sum_time += end.Sub(start).Milliseconds()
+    }
+
+    logger.Infof("Invoked %v transactions", invoke_count)
+    logger.Infof("Average time: %v ms", sum_time/invoke_count)
 
 	
 }

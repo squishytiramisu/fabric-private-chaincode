@@ -78,24 +78,23 @@ run_performance_test() {
   install_chaincode
   para
   say "Run performance test"
-  go run client_app/helloworld.go
+  go run client_app/performance.go
   para
   say "Shutdown ledger"
   ledger_shutdown
 }
 
 
-stty -echo
+
 trap ledger_shutdown EXIT
 
 export CC_ID
 export CHAN_ID
 
-stty -echo
-run_access_control_test
+
+#stty -echo
+run_performance_test
 stty echo
-
-
 
 
 exit 0
@@ -110,12 +109,14 @@ stty -echo
 run_validation_test
 stty echo
 
-
-
-
 stty -echo
-run_performance_test
+run_access_control_test
 stty echo
+
+
+
+
+
 
 
 yell "tests FINISHED"
