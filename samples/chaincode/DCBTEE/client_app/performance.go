@@ -112,9 +112,9 @@ func main() {
 
     logger.Infof("------------------------------------------------------")
     logger.Infof("Now testing the encryption method 1000 times")
+    logger.Infof("------------------------------------------------------")
     invoke_count = 0
     sum_time = 0
-    // Iterate through the transactions and invoke them
 
     tx := struct {
         Name string
@@ -140,6 +140,7 @@ func main() {
 
     logger.Infof("------------------------------------------------------")
     logger.Infof("Now testing adding a new person 100 times")
+    logger.Infof("------------------------------------------------------")
     invoke_count = 0
     sum_time = 0
     for index := 0; index < 100; index++ {

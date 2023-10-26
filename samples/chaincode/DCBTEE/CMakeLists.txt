@@ -5,7 +5,7 @@ set(SOURCE_FILES
     dto_json.cpp
     validate.cpp
     complex_validations.cpp
-    get_functions.cpp
+    CR_functions.cpp
     elgamal.cpp
     access.cpp
     events.cpp

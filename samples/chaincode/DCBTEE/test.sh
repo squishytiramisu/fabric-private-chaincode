@@ -36,6 +36,7 @@ install_chaincode(){
 }
 
 run_validation_test() {
+  para
   say "Setup ledger"
   ledger_init
   install_chaincode
@@ -45,9 +46,12 @@ run_validation_test() {
   para
   say "Shutdown ledger"
   ledger_shutdown
+  para
+  para
 }
 
 run_functions_test() {
+  para
   say "Setup ledger ..."
   ledger_init
   install_chaincode
@@ -57,9 +61,12 @@ run_functions_test() {
   para
   say "Shutdown ledger ..."
   ledger_shutdown
+  para
+  para
 }
 
 run_access_control_test() {
+  para
   say "Setup ledger"
   ledger_init
   install_chaincode
@@ -69,10 +76,13 @@ run_access_control_test() {
   para
   say "Shutdown ledger"
   ledger_shutdown
+  para
+  para
 }
 
 
 run_performance_test() {
+  para
   say "Setup ledger"
   ledger_init
   install_chaincode
@@ -82,22 +92,39 @@ run_performance_test() {
   para
   say "Shutdown ledger"
   ledger_shutdown
+  para
+  para
 }
-
-
-
-trap ledger_shutdown EXIT
 
 export CC_ID
 export CHAN_ID
 
+TEST="ALL"
+if [ $# -eq 1 ]; then
+  TEST=$1
+fi
 
-#stty -echo
-run_performance_test
-stty echo
+trap ledger_shutdown EXIT
+
+echo "Running tests: ${TEST}"
+
+if [ "$TEST" = "validation" ]; then
+  run_validation_test
+  exit 0
+elif [ "$TEST" = "functions" ]; then
+  run_functions_test
+  exit 0
+elif [ "$TEST" = "access" ]; then
+  run_access_control_test
+  exit 0
+elif [ "$TEST" = "performance" ]; then
+  run_performance_test
+  exit 0
+else
+  echo "RUNNING ALL TESTS"
+fi
 
 
-exit 0
 
 
 stty -echo
@@ -113,9 +140,9 @@ stty -echo
 run_access_control_test
 stty echo
 
-
-
-
+stty -echo
+run_performance_test
+stty echo
 
 
 

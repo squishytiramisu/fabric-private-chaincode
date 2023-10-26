@@ -10,7 +10,4 @@ std::string elgamal_encrypt(BIGNUM* g, BIGNUM* g_hat, BIGNUM* q, BIGNUM* p, BIGN
 
 std::string intToHex(int value);
 
-int hexToInt(const std::string& hex);
-
-std::string xorHashAndString(const unsigned char* hash, const std::string& str);
 void hash_2(const std::string& hx, const BIGNUM* g1, const BIGNUM* g2, const BIGNUM* g3, const BIGNUM* g4, const BIGNUM* q,BN_CTX* xd, BIGNUM* result);

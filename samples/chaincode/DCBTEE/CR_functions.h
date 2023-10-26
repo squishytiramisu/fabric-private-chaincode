@@ -2,12 +2,14 @@
 
 #include <iostream>
 #include <string>
-
 #include "constants.h"
 #include "shim.h"
-
 #include "dto_json.h"
 
+
+/*
+    This file contains the function to create, read and update the state of the chaincode.
+*/
 
 person_t getPerson(std::string key,  shim_ctx_ptr_t ctx);
 

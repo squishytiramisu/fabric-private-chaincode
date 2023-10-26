@@ -1,13 +1,3 @@
-/*
- * Copyright IBM Corp. All Rights Reserved.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-
-
-
-
 #pragma once
 
 #include <stdbool.h>
@@ -15,7 +5,12 @@
 #include <string>
 #include <map>
 
-///////////// REAL DTOs
+
+/*
+    This file contains the data transfer objects for the chaincode.
+    As well as the marshalling and unmarshalling functions.
+*/
+
 
 typedef struct person{
     std::string id;
@@ -43,7 +38,6 @@ typedef struct life_insurance{
     bool should_pay;
 } life_insurance_t;
 
-
 typedef struct work_permit{
     std::string id;
     std::string name;
@@ -57,6 +51,8 @@ typedef struct data_map{
     std::map <std::string, life_insurance_t> life_insurances;
     std::map <std::string, work_permit_t> work_permits;
 } data_map_t;
+
+
 
 
 std::string marshal_person(person_t* person);

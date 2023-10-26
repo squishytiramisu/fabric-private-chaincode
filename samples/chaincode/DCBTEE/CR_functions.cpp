@@ -1,10 +1,9 @@
 
-#include "get_functions.h"
+#include "CR_functions.h"
 
 
 person_t getPerson(std::string key,  shim_ctx_ptr_t ctx)
 {
-    // check if datamap exists
     uint32_t datamap_bytes_len = 0;
     uint8_t datamap_bytes[MAX_VALUE_SIZE];
 

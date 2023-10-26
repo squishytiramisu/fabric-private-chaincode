@@ -38,7 +38,6 @@ bool isValidCost(int cost);
 bool isValidPayment(int payment);
 
 
-
 //CTX predicates
 bool tajExists(const std::string& str, shim_ctx_ptr_t ctx);
 

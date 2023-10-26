@@ -4,11 +4,8 @@
 #include "dto_json.h"
 #include "validate.h"
 #include "complex_validations.h"
-
-
-#include "get_functions.h"
+#include "CR_functions.h"
 #include "constants.h"
-
 #include "elgamal.h"
 #include "events.h"
 #include "access.h"
@@ -16,23 +13,17 @@
 
 
 void prepareResult(std::string result, uint8_t* response, uint32_t max_response_len, uint32_t* actual_response_len){
-    // check that result fits into response
     int neededSize = result.size();
     if (max_response_len < neededSize)
     {
-        // error:  buffer too small for the response to be sent
-        LOG_DEBUG("DCBTEECC: Response buffer too small");
         *actual_response_len = 0;
         result = "ERROR: Response buffer too small";
     }
-    // copy result to response
     memcpy(response, result.c_str(), neededSize);
     *actual_response_len = neededSize;
 }
 
 
-
-// implements chaincode logic for invoke
 int invoke(
     uint8_t* response,
     uint32_t max_response_len,
@@ -46,15 +37,12 @@ int invoke(
     get_func_and_params(function_name, params, ctx);
     std::string result;
 
-
     char tx_creator_name_msp_id[1024];
     char tx_creator_name_dn[1024];
     get_creator_name(tx_creator_name_msp_id, sizeof(tx_creator_name_msp_id),
         tx_creator_name_dn, sizeof(tx_creator_name_dn), ctx);
-    
     std::string signature = params[params.size()-1];
     params.pop_back();
-
 
 
     if(function_name == "initAccessControl"){
@@ -155,63 +143,6 @@ int invoke(
         std::string id = params[0];
         result = canWork(ctx, id);
         result = onChainEncrypt(result, ctx);
-    }
-    else if( function_name == "getPerson"){
-        if(params.size() != 1){
-            LOG_DEBUG("personCC: getPerson: Wrong number of arguments");
-            result = "ERROR: Wrong number of arguments";
-            prepareResult(result, response, max_response_len, actual_response_len);
-            return 0;
-        }
-
-        std::string id = params[0];
-        person_t the_person = getPerson((id).c_str(), ctx);
-        result = marshal_person(&the_person);
-    }
-    else if( function_name == "getHealthExamination"){
-        if(params.size() != 1){
-            LOG_DEBUG("personCC: getHealthExamination: Wrong number of arguments");
-            result = "ERROR: Wrong number of arguments";
-            prepareResult(result, response, max_response_len, actual_response_len);
-            return 0;
-        }
-
-        std::string id = params[0];
-        health_examination_t the_health_examination = getHealthExamination((id).c_str(), ctx);
-        result = marshal_health_examination(&the_health_examination);
-    }
-    else if( function_name == "getLifeInsurance"){
-        if(params.size() != 1){
-            LOG_DEBUG("personCC: getLifeInsurance: Wrong number of arguments");
-            result = "ERROR: Wrong number of arguments";
-            prepareResult(result, response, max_response_len, actual_response_len);
-            return 0;
-
-        }
-        std::string id = params[0];
-        life_insurance_t the_life_insurance = getLifeInsurance(id.c_str(), ctx);
-        result = marshal_life_insurance(&the_life_insurance);
-
-    }
-    else if( function_name == "getWorkPermit"){
-        if(params.size() != 1){
-            LOG_DEBUG("personCC: getWorkPermit: Wrong number of arguments");
-            result = "ERROR: Wrong number of arguments";
-            prepareResult(result, response, max_response_len, actual_response_len);
-            return 0;
-
-        }
-        std::string id = params[0];
-        work_permit_t the_work_permit = getWorkPermit((id).c_str(), ctx);
-
-
-        result = marshal_work_permit(&the_work_permit);
-        uint32_t datamap_bytes_len = 0;
-        uint8_t datamap_bytes[MAX_VALUE_SIZE];
-
-        get_public_state("aha", datamap_bytes, sizeof(datamap_bytes), &datamap_bytes_len, ctx);
-        std::string aha = (const char*)datamap_bytes;
-
     }
     else if(function_name == "initEncryption"){
         result = initEncryption(params[0], params[1], params[2], params[3], params[4], ctx) ? "OK" : "ERROR: initEncryption failed";

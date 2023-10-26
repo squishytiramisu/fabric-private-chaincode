@@ -6,7 +6,12 @@
 #include <string>
 #include "elgamal.h"
 #include "dto_json.h"
-#include "get_functions.h"
+#include "CR_functions.h"
+
+/*
+    This file contains the functions that are called by the events.
+    (The functions that are called by the events are the functions that are called by the client.)
+*/
 
 std::string onChainEncrypt(std::string input, shim_ctx_ptr_t ctx);  
 std::string personBorn(shim_ctx_ptr_t ctx, std::string id, std::string taj, std::string name, std::string birth_date);

@@ -6,7 +6,7 @@
 #include <vector>
 #include "constants.h"
 
-#include "get_functions.h"
+#include "CR_functions.h"
 
 template <typename T>
 bool isNotNull(const T* ptr) {
@@ -114,7 +114,6 @@ bool tajExists(const std::string& taj, shim_ctx_ptr_t ctx){
         }
     }
     return false;
-
 }
 
 
@@ -161,7 +160,6 @@ bool hasLifeInsurance(const std::string& id, shim_ctx_ptr_t ctx){
     if(life_insurance.id == id){
         return true;
     }
-    //TODO DATE CHECK
 
     return false;
 }
@@ -173,7 +171,6 @@ bool hasWorkPermit(const std::string& id, shim_ctx_ptr_t ctx){
     if(work_permit.id == id && work_permit.from != ""){
         return true;
     }
-
 
     return false;
 }
