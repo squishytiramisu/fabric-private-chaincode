@@ -53,7 +53,8 @@ func main() {
         },
         {
             Name: "initEncryption",
-            Args: []string{"696045", "1445688", "26681", "2614739", "1391988","Org1"},
+
+            Args: []string{"301831", "2357379", "44851", "4574803", "2142385","Org1"},
             Desc: "transaction to initialize encryption parameters: should succeed",
         },
         {
@@ -94,10 +95,10 @@ func main() {
 
     // Iterate through the transactions and invoke them
     for _, tx := range transactions {
-        result, err1 := contract.SubmitTransaction(tx.Name, tx.Args...)
+        result, err := contract.SubmitTransaction(tx.Name, tx.Args...)
 		logger.Infof("Invoking %s %s ", tx.Name, tx.Desc)
-        if err1 != nil {
-           logger.Fatalf("Something went wrong: " + err1.Error())
+        if err != nil {
+           logger.Fatalf("Something went wrong: " + err.Error())
         }
 
         if (strings.Contains(string(tx.Desc), "succeed")) {

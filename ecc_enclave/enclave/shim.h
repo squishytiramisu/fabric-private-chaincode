@@ -51,10 +51,9 @@ typedef std::vector<uint8_t> ByteArray;
 // Function which FPC chaincode has to implement
 // ==================================================
 // - invoke, called when a transaction query or invocation is executed
-int invoke(uint8_t* response,
-    uint32_t max_response_len,
-    uint32_t* actual_response_len,
-    shim_ctx_ptr_t ctx);
+
+
+int invoke(uint8_t* response, uint32_t max_response_len, uint32_t* actual_response_len, shim_ctx_ptr_t ctx);
 
 // Shim Function which FPC chaincode can use
 // ==================================================
